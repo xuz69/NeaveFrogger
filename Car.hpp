@@ -7,14 +7,9 @@
 
 class Car{
 public:
-    Car(int in_x, int in_y, int in_z); 
+    Car(Point3D pos, Vec3D dir);
     Point3D position; 
     Vec3D direction;
-    double speed;
-    bool onMiddle;
-    bool onRiver;
-    bool onStart;
-    bool onRoad;
 };
 
 #endif

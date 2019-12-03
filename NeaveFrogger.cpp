@@ -15,6 +15,8 @@
 #include <math.h>
 #include "FrogPlayer.hpp"
 #include "objParser.hpp"
+#include "mathLib3D.hpp"
+#include "Car.hpp"
 /* some global variables */
 int timer = 60; // time limit for each round
 
@@ -24,7 +26,35 @@ double PI = 3.14159265;
 
 bool godmode = false;
 
+Point3D origin = Point3D();
+
 FrogPlayer player = FrogPlayer();
+
+std::vector<Car> car1;
+
+std::vector<Car> car2;
+
+std::vector<Car> car3;
+
+float car1_speed = 1;
+
+float car2_speed = 0.8;
+
+float car3_speed = 0.5;
+
+void createCars(){
+    car1.push_back(Car(Point3D(-130,0,80),Vec3D(1,0,0)));
+    car1.push_back(Car(Point3D(-65,0,80),Vec3D(1,0,0)));
+    car1.push_back(Car(Point3D(20,0,80),Vec3D(1,0,0)));
+    car1.push_back(Car(Point3D(95,0,80),Vec3D(1,0,0)));
+
+    car2.push_back(Car(Point3D(-120,5.5,50),Vec3D(1,0,0)));
+    car2.push_back(Car(Point3D(-20,5.5,50),Vec3D(1,0,0)));
+    car2.push_back(Car(Point3D(80,5.5,50),Vec3D(1,0,0)));
+
+    car3.push_back(Car(Point3D(70,-2.5,20),Vec3D(1,0,0)));
+    car3.push_back(Car(Point3D(-80,-2.5,20),Vec3D(1,0,0)));
+}
 
 
 //frog
@@ -339,9 +369,12 @@ void drawRaft(){
 /*
  Similar as the drawFrog, and drawRaft, we can draw car 1
  */
-void drawCar1(){
+void drawCar1(Point3D p){
     setMaterials(7);
     glPushMatrix();
+    glTranslatef(p.mX, p.mY, p.mZ);
+    glScalef(6,6,6);
+    glRotatef(180,0,1,0);
     for(int i = 0; i < car_facess.size(); i++){
         glBegin(GL_POLYGON);
             glColor3f(0,0,1);
@@ -359,9 +392,11 @@ void drawCar1(){
 /*
  Similar as the drawFrog, and drawRaft, we can draw car 2
  */
-void drawCar2(){
+void drawCar2(Point3D p){
     setMaterials(2);
     glPushMatrix();
+    glTranslatef(p.mX, p.mY, p.mZ);
+    glScalef(6,6,6);
     for(int i = 0; i < car2_facess.size(); i++){
         glBegin(GL_POLYGON);
             glColor3f(1,1,0);
@@ -379,9 +414,13 @@ void drawCar2(){
 /*
  Similar as the drawFrog, and drawRaft, we can draw car 3 (Fire truck)
  */
-void drawCar3(){
+void drawCar3(Point3D p){
     setMaterials(1);
+    
     glPushMatrix();
+    glTranslatef(p.mX, p.mY, p.mZ);
+   
+    glScalef(18,18,18);
     for(int i = 0; i < car3_facess.size(); i++){
         glBegin(GL_POLYGON);
             glColor3f(1,0,0);
@@ -430,23 +469,17 @@ void display(){
     glPopMatrix();
     
     /* three types of car */
-    glPushMatrix();
-    glTranslatef(30,0,80);
-    glScalef(6,6,6);
-    drawCar1();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(70,5.5,50);
-    glScalef(6,6,6);
-    drawCar2();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(-60,-2.5,20);
-    glScalef(18,18,18);
-    drawCar3();
-    glPopMatrix();
+    for(int i = 0; i < car1.size(); i++){
+        drawCar1(car1[i].position);
+    }
+    //drawCar1();
+    for(int i = 0; i < car2.size(); i++){
+        drawCar2(car2[i].position);
+    }
+    
+    for(int i = 0; i < car3.size(); i++){
+        drawCar3(car3[i].position);
+    }
     
     /* rafts */
     glPushMatrix();
@@ -479,6 +512,45 @@ void display(){
 
     glutSwapBuffers();
 
+}
+
+
+
+void moveCar1(void){
+    for (int i = 0; i < car1.size(); i++){
+        if (-164 <= car1[i].position.mX && car1[i].position.mX <= 164){
+            car1[i].position.mX = car1[i].position.mX - car1_speed;
+        }else
+        {
+            car1[i].position.mX = 163;
+        }
+        
+    }
+}
+
+
+void moveCar2(void){
+    for (int i = 0; i < car2.size(); i++){
+        if (-164 <= car2[i].position.mX && car2[i].position.mX <= 164){
+            car2[i].position.mX = car2[i].position.mX - car2_speed;
+        }else
+        {
+            car2[i].position.mX = 163;
+        }
+        
+    }
+}
+
+void moveCar3(void){
+    for (int i = 0; i < car3.size(); i++){
+        if (-164 <= car3[i].position.mX && car3[i].position.mX <= 164){
+            car3[i].position.mX = car3[i].position.mX - car3_speed;
+        }else
+        {
+            car3[i].position.mX = 163;
+        }
+        
+    }
 }
 
 
@@ -618,7 +690,29 @@ void FPS(int val){
         player.onStart = false;
     }
     glutPostRedisplay();
-    glutTimerFunc(17, FPS, 0);
+    
+    moveCar1();
+    
+    for (int i = 0; i < car1.size(); i++){
+        car1[i].position = car1[i].direction.multiply(-car1_speed)
+                                .movePoint(car1[i].position);
+    };
+
+    moveCar2();
+
+    for (int i = 0; i < car2.size(); i++){
+        car2[i].position = car2[i].direction.multiply(-car2_speed)
+                                .movePoint(car2[i].position);
+    };
+
+    moveCar3();
+
+    for (int i = 0; i < car3.size(); i++){
+        car3[i].position = car3[i].direction.multiply(-car3_speed)
+                                .movePoint(car3[i].position);
+    };
+
+    glutTimerFunc(17, FPS, 0); // 1sec = 1000, 60fps = 1000/60 = ~17
 }
 
 /* Reshape function */
@@ -635,11 +729,13 @@ void handleReshape(int w, int h) {
  */
 void callbackInit(){
     //programInstr();
+    createCars();
     glutDisplayFunc(display);
     glutKeyboardFunc(handleKeyboard);
     glutSpecialFunc(special);
     glutReshapeFunc(handleReshape);
     glutTimerFunc(0, FPS, 0);
+    
 }
 
 int main(int argc, char** argv){
