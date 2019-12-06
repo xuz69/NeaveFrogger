@@ -15,20 +15,17 @@
 #include <math.h>
 #include "FrogPlayer.hpp"
 #include "objParser.hpp"
-#include "mathLib3D.hpp"
+#include "loadMtl.hpp"
 #include "Car.hpp"
+#include "Raft.hpp"
 /* some global variables */
 int timer = 60; // time limit for each round
 
 bool test = 0;
 
-double PI = 3.14159265;
-
 bool godmode = false;
 
-Point3D origin = Point3D();
-
-FrogPlayer player = FrogPlayer();
+double pi = 3.14159265;
 
 std::vector<Car> car1;
 
@@ -36,26 +33,21 @@ std::vector<Car> car2;
 
 std::vector<Car> car3;
 
+std::vector<Raft> raft1;
+
+std::vector<Raft> raft2;
+
+std::vector<Raft> raft3;
+
+std::vector<Raft> raft4;
+
 float car1_speed = 1;
 
 float car2_speed = 0.8;
 
 float car3_speed = 0.5;
 
-void createCars(){
-    car1.push_back(Car(Point3D(-130,0,80),Vec3D(1,0,0)));
-    car1.push_back(Car(Point3D(-65,0,80),Vec3D(1,0,0)));
-    car1.push_back(Car(Point3D(20,0,80),Vec3D(1,0,0)));
-    car1.push_back(Car(Point3D(95,0,80),Vec3D(1,0,0)));
-
-    car2.push_back(Car(Point3D(-120,5.5,50),Vec3D(1,0,0)));
-    car2.push_back(Car(Point3D(-20,5.5,50),Vec3D(1,0,0)));
-    car2.push_back(Car(Point3D(80,5.5,50),Vec3D(1,0,0)));
-
-    car3.push_back(Car(Point3D(70,-2.5,20),Vec3D(1,0,0)));
-    car3.push_back(Car(Point3D(-80,-2.5,20),Vec3D(1,0,0)));
-}
-
+FrogPlayer player = FrogPlayer();
 
 //frog
 std::vector<Point3D> frog_verticess;
@@ -63,17 +55,20 @@ std::vector<Point3D> frog_vts;
 std::vector<Vec3D> frog_normalss;
 std::vector<std::vector<std::vector<int> > > frog_facess;
 
+
 //car1
 std::vector<Point3D> car_verticess;
 std::vector<Point3D> car_vts;
 std::vector<Vec3D> car_normalss;
 std::vector<std::vector<std::vector<int> > > car_facess;
 
+
 //car2
 std::vector<Point3D> car2_verticess;
 std::vector<Point3D> car2_vts;
 std::vector<Vec3D> car2_normalss;
 std::vector<std::vector<std::vector<int> > > car2_facess;
+
 
 //car3
 std::vector<Point3D> car3_verticess;
@@ -247,6 +242,42 @@ void setMaterials(unsigned int index) {
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, materialShiny[index]);
 }
 
+/* Create Cars Function */
+void createCars(){
+    car1.push_back(Car(Point3D(-130,0,80),Vec3D(1,0,0)));
+    car1.push_back(Car(Point3D(-65,0,80),Vec3D(1,0,0)));
+    car1.push_back(Car(Point3D(20,0,80),Vec3D(1,0,0)));
+    car1.push_back(Car(Point3D(95,0,80),Vec3D(1,0,0)));
+
+    car2.push_back(Car(Point3D(-120,5.5,50),Vec3D(1,0,0)));
+    car2.push_back(Car(Point3D(-20,5.5,50),Vec3D(1,0,0)));
+    car2.push_back(Car(Point3D(80,5.5,50),Vec3D(1,0,0)));
+
+    car3.push_back(Car(Point3D(70,-2.5,20),Vec3D(1,0,0)));
+    car3.push_back(Car(Point3D(-80,-2.5,20),Vec3D(1,0,0)));
+}
+
+/* Create Rafts Function */
+void createRafts(){
+    raft1.push_back(Raft(Point3D(-120,5,-30),Vec3D(1,0,0),6,0.8));
+    raft1.push_back(Raft(Point3D(-40,5,-30),Vec3D(1,0,0),6,0.8));
+    raft1.push_back(Raft(Point3D(40,5,-30),Vec3D(1,0,0),6,0.8));
+    raft1.push_back(Raft(Point3D(120,5,-30),Vec3D(1,0,0),6,0.8));
+
+    raft2.push_back(Raft(Point3D(-70,5,-50),Vec3D(1,0,0),12,0.5));
+    raft2.push_back(Raft(Point3D(70,5,-50),Vec3D(1,0,0),12,0.5));
+
+    raft3.push_back(Raft(Point3D(-85,5,-70),Vec3D(1,0,0),8,0.9));
+    raft3.push_back(Raft(Point3D(0,5,-70),Vec3D(1,0,0),8,0.9));
+    raft3.push_back(Raft(Point3D(85,5,-70),Vec3D(1,0,0),8,0.9));
+
+    raft4.push_back(Raft(Point3D(-120,5,-90),Vec3D(1,0,0),6,0.4));
+    raft4.push_back(Raft(Point3D(-40,5,-90),Vec3D(1,0,0),6,0.4));
+    raft4.push_back(Raft(Point3D(40,5,-90),Vec3D(1,0,0),6,0.4));
+    raft4.push_back(Raft(Point3D(120,5,-90),Vec3D(1,0,0),6,0.4));
+
+}
+
 /*
  draw the display ground, start tile, car tile, water tile, and end tile
  */
@@ -328,6 +359,10 @@ void draw_ground(){
  */
 void drawFrog(){
     glPushMatrix();
+    glTranslatef(player.position.mX,player.position.mY,player.position.mZ);
+    glRotatef(-90,0,1,0);
+    glScalef(0.1,0.1,0.1);
+    setMaterials(4);
     // in each face of the frag
     for(int i = 0; i < frog_facess.size(); i++){
         glBegin(GL_POLYGON);
@@ -349,9 +384,12 @@ void drawFrog(){
 /*
  we are doing the same thing with drawFrog function, now we can draw the raft
  */
-void drawRaft(){
+void drawRaft(Point3D p, int length){
     setMaterials(0);
     glPushMatrix();
+    glTranslatef(p.mX, p.mY, p.mZ);
+    glRotatef(90,0,1,0);
+    glScalef(6,6,length);
     for(int i = 0; i < raft_facess.size(); i++){
         glBegin(GL_POLYGON);
             glColor3f(0.5f, 0.35f, 0.05f);
@@ -460,61 +498,36 @@ void display(){
     draw_ground();
     
     //draw frog
-    glPushMatrix();
-    glTranslatef(player.position.mX,player.position.mY,player.position.mZ);
-    glRotatef(-90,0,1,0);
-    glScalef(0.1,0.1,0.1);
-    setMaterials(4);
     drawFrog();
-    glPopMatrix();
     
     /* three types of car */
     for(int i = 0; i < car1.size(); i++){
         drawCar1(car1[i].position);
     }
-    //drawCar1();
     for(int i = 0; i < car2.size(); i++){
         drawCar2(car2[i].position);
     }
-    
     for(int i = 0; i < car3.size(); i++){
         drawCar3(car3[i].position);
     }
     
     /* rafts */
-    glPushMatrix();
-    glTranslatef(-90,5,-30);
-    glRotatef(90,0,1,0);
-    glScalef(6,6,6);
-    drawRaft();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(10,5,-50);
-    glRotatef(90,0,1,0);
-    glScalef(6,6,6);
-    drawRaft();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(80,5,-70);
-    glRotatef(90,0,1,0);
-    glScalef(6,6,6);
-    drawRaft();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(-60,5,-90);
-    glRotatef(90,0,1,0);
-    glScalef(6,6,6);
-    drawRaft();
-    glPopMatrix();
+    for(int i = 0; i < raft1.size(); i++){
+        drawRaft(raft1[i].position, raft1[i].length);
+    }
+    for(int i = 0; i < raft2.size(); i++){
+        drawRaft(raft2[i].position, raft2[i].length);
+    }
+    for(int i = 0; i < raft3.size(); i++){
+        drawRaft(raft3[i].position, raft3[i].length);
+    }
+    for(int i = 0; i < raft4.size(); i++){
+        drawRaft(raft4[i].position, raft4[i].length);
+    }
 
     glutSwapBuffers();
 
 }
-
-
 
 void moveCar1(void){
     for (int i = 0; i < car1.size(); i++){
@@ -553,6 +566,58 @@ void moveCar3(void){
     }
 }
 
+void moveRaft1(){
+    for (int i = 0; i < raft1.size(); i++){
+        if (-164 <= raft1[i].position.mX && raft1[i].position.mX <= 164){
+            raft1[i].position.mX = raft1[i].position.mX - raft1[i].speed;
+        }else
+        {
+            raft1[i].position.mX = 163;
+        }
+        
+    }
+}
+
+void moveRaft2(){
+    for (int i = 0; i < raft1.size(); i++){
+        if (-164 <= raft2[i].position.mX && raft2[i].position.mX <= 164){
+            raft2[i].position.mX = raft2[i].position.mX - raft2[i].speed;
+        }else
+        {
+            raft2[i].position.mX = 163;
+        }
+        
+    }
+}
+
+void moveRaft3(){
+    for (int i = 0; i < raft1.size(); i++){
+        if (-164 <= raft3[i].position.mX && raft3[i].position.mX <= 164){
+            raft3[i].position.mX = raft3[i].position.mX - raft3[i].speed;
+        }else
+        {
+            raft3[i].position.mX = 163;
+        }
+        
+    }
+}
+
+void moveRaft4(){
+    for (int i = 0; i < raft1.size(); i++){
+        if (-164 <= raft4[i].position.mX && raft4[i].position.mX <= 164){
+            raft4[i].position.mX = raft4[i].position.mX - raft4[i].speed;
+        }else
+        {
+            raft4[i].position.mX = 163;
+        }
+        
+    } 
+}
+
+/* check life of the frog */
+void checkLife(){
+    
+}
 
 /*
  * Some keyboard functions
@@ -561,6 +626,10 @@ void moveCar3(void){
  */
 
 void handleKeyboard(unsigned char key, int x, int y){
+    double eye_x = eye[0];
+    double eye_y = eye[1];
+    double eye_z = eye[2];
+    double rotate_angle = 5.0 * pi /180 ;
     switch (key){
     case 27:
     case 'q':
@@ -579,6 +648,30 @@ void handleKeyboard(unsigned char key, int x, int y){
             lookAt[0] = 0;
             lookAt[1] = 0;
             lookAt[2] = 0;
+        }
+        break;
+    case 'a':
+        if(godmode){
+            eye[0] = eye_x*cos(-rotate_angle)+eye_z*sin(-rotate_angle);
+            eye[2] = eye_z*cos(-rotate_angle)-eye_x*sin(-rotate_angle); 
+        }
+        break;
+    case 'd':
+        if(godmode){
+            eye[0] = eye_x*cos(rotate_angle)+eye_z*sin(rotate_angle);
+            eye[2] = eye_z*cos(rotate_angle)-eye_x*sin(rotate_angle);        
+        }
+        break;
+    case 's':
+        if(godmode){
+            eye[1] = eye_y*cos(rotate_angle)-eye_z*sin(rotate_angle);
+            eye[2] = eye_y*sin(rotate_angle)+eye_z*cos(rotate_angle);
+        }
+        break;
+    case 'w':
+        if(godmode){
+            eye[1] = eye_y*cos(-rotate_angle)-eye_z*sin(-rotate_angle);
+            eye[2] = eye_y*sin(-rotate_angle)+eye_z*cos(-rotate_angle);
         }
         break;
     }
@@ -689,30 +782,21 @@ void FPS(int val){
         player.onRoad = false;
         player.onStart = false;
     }
-    glutPostRedisplay();
-    
+
+    /* moving of the cars */
     moveCar1();
-    
-    for (int i = 0; i < car1.size(); i++){
-        car1[i].position = car1[i].direction.multiply(-car1_speed)
-                                .movePoint(car1[i].position);
-    };
-
     moveCar2();
-
-    for (int i = 0; i < car2.size(); i++){
-        car2[i].position = car2[i].direction.multiply(-car2_speed)
-                                .movePoint(car2[i].position);
-    };
-
     moveCar3();
 
-    for (int i = 0; i < car3.size(); i++){
-        car3[i].position = car3[i].direction.multiply(-car3_speed)
-                                .movePoint(car3[i].position);
-    };
+    /* moving of the rafts */
+    moveRaft1();
+    moveRaft2();
+    moveRaft3();
+    moveRaft4();
 
-    glutTimerFunc(17, FPS, 0); // 1sec = 1000, 60fps = 1000/60 = ~17
+
+    glutPostRedisplay();
+    glutTimerFunc(17, FPS, 0);
 }
 
 /* Reshape function */
@@ -730,12 +814,12 @@ void handleReshape(int w, int h) {
 void callbackInit(){
     //programInstr();
     createCars();
+    createRafts();
     glutDisplayFunc(display);
     glutKeyboardFunc(handleKeyboard);
     glutSpecialFunc(special);
     glutReshapeFunc(handleReshape);
     glutTimerFunc(0, FPS, 0);
-    
 }
 
 int main(int argc, char** argv){
@@ -756,6 +840,7 @@ int main(int argc, char** argv){
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
+    //glEnable(GL_LIGHT1);
 
     glEnable(GL_DEPTH_TEST);
 
