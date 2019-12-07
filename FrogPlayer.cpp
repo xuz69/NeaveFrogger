@@ -18,4 +18,8 @@ FrogPlayer::FrogPlayer(){
     this->onStart = true;
 
     this->onRoad = false;
+    
+    this->num_tile_raft = 0;
+
+    this->on_raft_num = 0;
 }

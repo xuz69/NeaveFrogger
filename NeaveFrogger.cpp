@@ -15,7 +15,6 @@
 #include <math.h>
 #include "FrogPlayer.hpp"
 #include "objParser.hpp"
-#include "loadMtl.hpp"
 #include "Car.hpp"
 #include "Raft.hpp"
 /* some global variables */
@@ -169,29 +168,29 @@ float face_normals[6][3] = {{0,0,1},//1
                             };
 /* vertices for ground */
 float ground_vertices[24][3] = {{150,0,115},//v1
-                               {150,-2,115},//v2
-                               {-150,-2,115},//v3
+                               {150,-5,115},//v2
+                               {-150,-5,115},//v3
                                {-150,0,115},//v4
                                {-150,0,95},//v5
                                {150,0,95},//v6
-                               {150,-2,95},//v7
-                               {-150,-2,95},//v8
+                               {150,-5,95},//v7
+                               {-150,-5,95},//v8
                                {150,0,5},//9
                                {-150,0,5},//10
-                               {-150,-2,5},//11
-                               {150,-2,5},//12
+                               {-150,-5,5},//11
+                               {150,-5,5},//12
                                {150,0,-15},//13
                                {-150,0,-15},//14
-                               {-150,-2,-15},//15
-                               {150,-2,-15},//16
+                               {-150,-5,-15},//15
+                               {150,-5,-15},//16
                                {150,0,-105},//17
                                {-150,0,-105},//18
-                               {-150,-2,-105},//19
-                               {150,-2,-105},//20
+                               {-150,-5,-105},//19
+                               {150,-5,-105},//20
                                {150,0,-125},//21
                                {-150,0,-125},//22
-                               {-150,-2,-125},//23
-                               {150,-2,-125},//24
+                               {-150,-5,-125},//23
+                               {150,-5,-125},//24
                                };
 
 /* faces for start tile */
@@ -220,7 +219,7 @@ int face_middle_tile[6][4] = {{9,10,11,12}, //front
 
 /* faces for water tiles */
 int face_water_tile[6][4] = {{13,14,15,16}, //front
-                           {13,14,18,17}, //top
+                           {13,17,18,14}, //top
                            {13,16,20,17}, //right
                            {14,18,19,15}, //left
                            {16,15,19,20}, //buttom
@@ -259,22 +258,22 @@ void createCars(){
 
 /* Create Rafts Function */
 void createRafts(){
-    raft1.push_back(Raft(Point3D(-120,5,-30),Vec3D(1,0,0),6,0.8));
-    raft1.push_back(Raft(Point3D(-40,5,-30),Vec3D(1,0,0),6,0.8));
-    raft1.push_back(Raft(Point3D(40,5,-30),Vec3D(1,0,0),6,0.8));
-    raft1.push_back(Raft(Point3D(120,5,-30),Vec3D(1,0,0),6,0.8));
+    raft1.push_back(Raft(Point3D(-120,0,-30),Vec3D(1,0,0),6,0.8,1));
+    raft1.push_back(Raft(Point3D(-40,0,-30),Vec3D(1,0,0),6,0.8,2));
+    raft1.push_back(Raft(Point3D(40,0,-30),Vec3D(1,0,0),6,0.8,3));
+    raft1.push_back(Raft(Point3D(120,0,-30),Vec3D(1,0,0),6,0.8,4));
 
-    raft2.push_back(Raft(Point3D(-70,5,-50),Vec3D(1,0,0),12,0.5));
-    raft2.push_back(Raft(Point3D(70,5,-50),Vec3D(1,0,0),12,0.5));
+    raft2.push_back(Raft(Point3D(-70,0,-50),Vec3D(1,0,0),12,0.5,1));
+    raft2.push_back(Raft(Point3D(70,0,-50),Vec3D(1,0,0),12,0.5,2));
 
-    raft3.push_back(Raft(Point3D(-85,5,-70),Vec3D(1,0,0),8,0.9));
-    raft3.push_back(Raft(Point3D(0,5,-70),Vec3D(1,0,0),8,0.9));
-    raft3.push_back(Raft(Point3D(85,5,-70),Vec3D(1,0,0),8,0.9));
+    raft3.push_back(Raft(Point3D(-85,0,-70),Vec3D(1,0,0),8,0.9,1));
+    raft3.push_back(Raft(Point3D(0,0,-70),Vec3D(1,0,0),8,0.9,2));
+    raft3.push_back(Raft(Point3D(85,0,-70),Vec3D(1,0,0),8,0.9,3));
 
-    raft4.push_back(Raft(Point3D(-120,5,-90),Vec3D(1,0,0),6,0.4));
-    raft4.push_back(Raft(Point3D(-40,5,-90),Vec3D(1,0,0),6,0.4));
-    raft4.push_back(Raft(Point3D(40,5,-90),Vec3D(1,0,0),6,0.4));
-    raft4.push_back(Raft(Point3D(120,5,-90),Vec3D(1,0,0),6,0.4));
+    raft4.push_back(Raft(Point3D(-120,0,-90),Vec3D(1,0,0),6,0.4,1));
+    raft4.push_back(Raft(Point3D(-40,0,-90),Vec3D(1,0,0),6,0.4,2));
+    raft4.push_back(Raft(Point3D(40,0,-90),Vec3D(1,0,0),6,0.4,3));
+    raft4.push_back(Raft(Point3D(120,0,-90),Vec3D(1,0,0),6,0.4,4));
 
 }
 
@@ -336,7 +335,7 @@ void draw_ground(){
         }
         glEnd();
     }
-    glPushMatrix();
+    glPopMatrix();
 
     //end tile
     setMaterials(3);
@@ -614,9 +613,150 @@ void moveRaft4(){
     } 
 }
 
-/* check life of the frog */
+/* 
+ * Check life of the frog 
+ *
+ * Two conditions that the frog will lose life(s): crush the car and fall into water
+ * 
+ * */
 void checkLife(){
+    double frog_x = player.position.mX;
+    double frog_z = player.position.mZ;
+    //crush the car
+    //first type of car
     
+    for(int i = 0; i < car1.size(); i++){
+        double x = car1[i].position.mX;
+        double z = car1[i].position.mZ;
+        if(frog_x < x + 17 && frog_x > x - 20 && frog_z> z - 18 && frog_z < z + 18){
+            player.lifes -= 1;
+            std::cout << "Crush!\n";
+            player.position = Point3D(0,0,105);
+        }
+    }
+    //second type of car
+     
+    for(int i = 0; i < car2.size(); i++){
+        double x = car2[i].position.mX;
+        double z = car2[i].position.mZ;
+        if(frog_x < x + 15 && frog_x > x - 20 && frog_z  > z - 18 && frog_z < z + 18){
+            player.lifes -= 1;
+            std::cout << "Crush!\n";
+            player.position = Point3D(0,0,105);
+        }
+    }
+    //third type of car
+    for(int i = 0; i < car3.size(); i++){
+        double x = car3[i].position.mX;
+        double z = car3[i].position.mZ;
+        if(frog_x < x + 40 && frog_x > x - 25 && frog_z > z - 15 && frog_z < z + 15){
+            player.lifes -= 1;
+            std::cout << "Crush!\n";
+            player.position = Point3D(0,0,105);
+        }
+    }
+
+    //fall into water
+    bool on_raft = false;
+    if(player.num_tile_raft == 1){
+        for(int i = 0; i < raft1.size(); i++){
+            double x = raft1[i].position.mX;
+            double z = raft1[i].position.mZ;
+            if(frog_x < x + 20 && frog_x > x - 25){
+                on_raft = true;
+                player.on_raft_num = i+1;
+                break;
+            }
+        }
+        if(!on_raft){
+            player.lifes -= 1;
+            player.num_tile_raft = 0;
+            player.on_raft_num = 0;
+            std::cout << "Fall in water!\n";
+            player.position = Point3D(0,0,105);
+        }
+    }
+    else if(player.num_tile_raft == 2){
+        for(int i = 0; i < raft2.size(); i++){
+            double x = raft2[i].position.mX;
+            double z = raft2[i].position.mZ;
+            if(frog_x < x + 25 && frog_x > x - 50){
+                on_raft = true;
+                player.on_raft_num = i+1;
+                break;
+            }
+        }
+        if(!on_raft){
+            player.lifes -= 1;
+            player.num_tile_raft = 0;
+            player.on_raft_num = 0;
+            std::cout << "Fall in water!\n";
+            player.position = Point3D(0,0,105);
+        }
+    }
+    else if(player.num_tile_raft == 3){
+        for(int i = 0; i < raft3.size(); i++){
+            double x = raft3[i].position.mX;
+            double z = raft3[i].position.mZ;
+            if(frog_x < x + 15 && frog_x > x - 35){
+                on_raft = true;
+                player.on_raft_num = i+1;
+                break;
+            }
+        }
+        if(!on_raft){
+            player.lifes -= 1;
+            player.num_tile_raft = 0;
+            player.on_raft_num = 0;
+            std::cout << "Fall in water!\n";
+            player.position = Point3D(0,0,105);
+        }
+    }
+    else if(player.num_tile_raft == 4){
+        for(int i = 0; i < raft4.size(); i++){
+            double x = raft4[i].position.mX;
+            double z = raft4[i].position.mZ;
+            if(frog_x < x + 20 && frog_x > x - 25){
+                on_raft = true;
+                player.on_raft_num = i+1;
+                break;
+            }
+        }
+        if(!on_raft){
+            player.lifes -= 1;
+            player.num_tile_raft = 0;
+            player.on_raft_num = 0;
+            std::cout << "Fall in water!\n";
+            player.position = Point3D(0,0,105);
+        }
+    }
+
+    if(player.lifes == 0){
+        std::cout << "Game over!\n";
+    }
+}
+
+void frogOnRaftMovement(){
+    if(player.num_tile_raft == 1){
+        if(player.on_raft_num != 0){
+            player.position.mX = player.position.mX - raft1[player.on_raft_num-1].speed;
+        }
+    }
+    else if(player.num_tile_raft == 2){
+        if(player.on_raft_num != 0){
+            player.position.mX = player.position.mX - raft2[player.on_raft_num-1].speed;
+        }
+    }
+    else if(player.num_tile_raft == 3){
+        if(player.on_raft_num != 0){
+            player.position.mX = player.position.mX - raft3[player.on_raft_num-1].speed;
+        }
+    }
+    else if(player.num_tile_raft == 4){
+        if(player.on_raft_num != 0){
+            player.position.mX = player.position.mX - raft4[player.on_raft_num-1].speed;
+        }
+    }
 }
 
 /*
@@ -696,9 +836,14 @@ void special(int key, int x, int y){
         case GLUT_KEY_UP:
             if(player.onMiddle){
                 player.position.mZ -= 25;
+                player.position.mY += 3;
+                player.num_tile_raft += 1;
+                std::cout << player.num_tile_raft << std::endl;
             }
             else if(player.onRiver){
                 player.position.mZ -= 20;
+                player.num_tile_raft += 1;
+                std::cout << player.num_tile_raft << std::endl;
             }
             else if(player.onStart){
                 player.position.mZ -= 25;
@@ -706,16 +851,25 @@ void special(int key, int x, int y){
             else if(player.onRoad && player.position.mZ > 20){
                 player.position.mZ -= 30;
             }
+            else if(player.onRiver && player.position.mZ < -80){
+                player.position.mZ -= 20;
+                player.position.mY -=3;//dump off the raft
+            }
             else{
                 player.position.mZ -= 25;
             }
             break;
         case GLUT_KEY_DOWN: 
-            if(player.onRiver && player.position.mZ > -30){
+            if(player.onRiver && player.num_tile_raft != 1){
                 player.position.mZ += 20;
+                player.num_tile_raft -= 1;
+                std::cout << player.num_tile_raft << std::endl;
             }
-            else if(player.onRiver && player.position.mZ <= -30){
+            else if(player.onRiver && player.num_tile_raft == 1){
                 player.position.mZ += 25;
+                player.position.mY -= 3;
+                player.num_tile_raft -= 1;
+                std::cout << player.num_tile_raft << std::endl;
             }
             else if(player.onMiddle){
                 player.position.mZ += 25;
@@ -782,7 +936,8 @@ void FPS(int val){
         player.onRoad = false;
         player.onStart = false;
     }
-
+    checkLife();
+    frogOnRaftMovement();
     /* moving of the cars */
     moveCar1();
     moveCar2();
@@ -808,6 +963,20 @@ void handleReshape(int w, int h) {
     glViewport(0, 0, w, h);
 }
 
+void handleMouse(int button, int state, int x, int y) {
+    /**
+     * YOUR CODE HERE
+     *
+     * Check for GLUT_LEFT_BUTTON and GLUT_DOWN and then call
+     * mouseHandler.leftClickDown, remember viewportHeight - y.
+     */
+    if(button == GLUT_LEFT_BUTTON){
+        if(state == GLUT_DOWN){
+            std::cout << "Left click at " << x << ", " << 600 - y << std::endl;
+        }
+    }
+}
+
 /*
  * CallBackInit function
  */
@@ -815,6 +984,7 @@ void callbackInit(){
     //programInstr();
     createCars();
     createRafts();
+    glutMouseFunc(handleMouse);
     glutDisplayFunc(display);
     glutKeyboardFunc(handleKeyboard);
     glutSpecialFunc(special);

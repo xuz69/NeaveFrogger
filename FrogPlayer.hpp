@@ -15,6 +15,8 @@ public:
     bool onRiver;
     bool onStart;
     bool onRoad;
+    int num_tile_raft;
+    int on_raft_num;
 };
 
 #endif
