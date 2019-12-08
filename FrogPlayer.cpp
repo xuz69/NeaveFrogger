@@ -23,6 +23,7 @@ FrogPlayer::FrogPlayer(){
 
     this->on_raft_num = 0;
 
+    // life and game checks
     this->live = true;
 
     this->win = false;

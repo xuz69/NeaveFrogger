@@ -131,7 +131,7 @@ GLfloat spec[2][4] = {
     { 1, 1, 1, 1 } //light1
 };
 
-
+/*Image struct: reference from our tut*/
 struct Image {
     int mWidth;
     int mHeight;
@@ -139,9 +139,6 @@ struct Image {
     GLubyte * mImage;
 
     void load(char * filename) {
-        /**
-         * YOUR CODE HERE
-         */
         mImage = LoadPPM(filename, &mWidth, &mHeight, &max);
 
     }
@@ -161,16 +158,12 @@ struct Image {
          * is very good. There is definitely a way to parse PPM bitmaps without
          * needing to flip the image like this.
          */
-        glPixelZoom(-1, 1);
-        /**
-         * YOUR CODE HERE
-         */
+        glPixelZoom(-2, 2);
         glDrawPixels(mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, mImage);
     }
 
     void texture() {
         /**
-         * YOUR CODE HERE
          *
          * Add the glTexImage2D and glTexParameterf calls.
          * I strongly recommend reading the documentation to get a loose sense
@@ -186,6 +179,8 @@ struct Image {
     }
 };
 
+/* Creating texture images */
+// textures for objects
 Image frog_texture;
 Image water;
 Image carroad;
@@ -194,50 +189,75 @@ Image firetruck;
 Image wood;
 Image yellowcar;
 Image pinkcar;
+
+// image textures
 Image heart;
 Image gameover;
 Image gamewin;
 
 
 
-/* Create Cars Function */
+/*
+ * Create Cars Function
+ *
+ * Creating cars and giving their positions and direction
+ */
 void createCars(){
+    // cars in the first line
     car1.push_back(Car(Point3D(-130,0,80),Vec3D(1,0,0)));
     car1.push_back(Car(Point3D(-65,0,80),Vec3D(1,0,0)));
     car1.push_back(Car(Point3D(20,0,80),Vec3D(1,0,0)));
     car1.push_back(Car(Point3D(95,0,80),Vec3D(1,0,0)));
 
+    // cars in the second line
     car2.push_back(Car(Point3D(-120,5.5,50),Vec3D(1,0,0)));
     car2.push_back(Car(Point3D(-20,5.5,50),Vec3D(1,0,0)));
     car2.push_back(Car(Point3D(80,5.5,50),Vec3D(1,0,0)));
 
+    // cars in the third line
     car3.push_back(Car(Point3D(70,-2.5,20),Vec3D(1,0,0)));
     car3.push_back(Car(Point3D(-80,-2.5,20),Vec3D(1,0,0)));
 }
 
-/* Create Rafts Function */
+/*
+* Create Rafts Function
+*
+* Creating rafts and giving their positions and direction from bottom to top
+*/
 void createRafts(){
+    // rafts in the first line
     raft1.push_back(Raft(Point3D(-120,0,-30),Vec3D(1,0,0),6,0.8,1));
     raft1.push_back(Raft(Point3D(-40,0,-30),Vec3D(1,0,0),6,0.8,2));
     raft1.push_back(Raft(Point3D(40,0,-30),Vec3D(1,0,0),6,0.8,3));
     raft1.push_back(Raft(Point3D(120,0,-30),Vec3D(1,0,0),6,0.8,4));
 
+    // rafts in the second line
     raft2.push_back(Raft(Point3D(-70,0,-50),Vec3D(1,0,0),12,0.5,1));
     raft2.push_back(Raft(Point3D(70,0,-50),Vec3D(1,0,0),12,0.5,2));
 
+    // rafts in the third line
     raft3.push_back(Raft(Point3D(-85,0,-70),Vec3D(1,0,0),8,0.9,1));
     raft3.push_back(Raft(Point3D(0,0,-70),Vec3D(1,0,0),8,0.9,2));
     raft3.push_back(Raft(Point3D(85,0,-70),Vec3D(1,0,0),8,0.9,3));
 
+    // rafts in the fourth line
     raft4.push_back(Raft(Point3D(-120,0,-90),Vec3D(1,0,0),6,0.4,1));
     raft4.push_back(Raft(Point3D(-40,0,-90),Vec3D(1,0,0),6,0.4,2));
     raft4.push_back(Raft(Point3D(40,0,-90),Vec3D(1,0,0),6,0.4,3));
     raft4.push_back(Raft(Point3D(120,0,-90),Vec3D(1,0,0),6,0.4,4));
 
 }
+
+/*
+ * Drawing Ground Function
+ *
+ * drawing flat of the game, and add textures into the ground,
+ * for the ground add rock texture; for the water surface add water
+ * ripple texture; for road add road texture
+ **/
 void draw_ground(){
     glPushMatrix();
-    //end tile
+    //Finish tiles
     glPushMatrix();
     rock.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -258,7 +278,7 @@ void draw_ground(){
     }
     glPopMatrix();
 
-    //water tiles
+    //Water tiles
     glPushMatrix();
     water.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -279,7 +299,7 @@ void draw_ground(){
     }
     glPopMatrix();
 
-    //middle tiles
+    //Middle tiles that is between road and water
     glPushMatrix();
     rock.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -300,7 +320,7 @@ void draw_ground(){
     }
     glPopMatrix();
 
-    //car tiles
+    //Road tiles
     glPushMatrix();
     carroad.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -321,7 +341,7 @@ void draw_ground(){
     }
     glPopMatrix();
 
-    //start tile
+    //Start tile
     glPushMatrix();
     rock.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -347,8 +367,10 @@ void draw_ground(){
 }
 
 /*
- since we load the obj file of frog by using our parser class,
- now we can draw the graphics of frog in opengl
+ * Frog Function
+ *
+ * since we load the obj file of frog by using our parser class,
+ * now we can draw the graphics of frog in opengl and add texture for it
  */
 void drawFrog(){
     glPushMatrix();
@@ -376,7 +398,9 @@ void drawFrog(){
 }
 
 /*
- we are doing the same thing with drawFrog function, now we can draw the raft
+ * Rafts Function
+ *
+ * we are doing the same thing with drawFrog function, now we can draw the raft
  */
 void drawRaft(Point3D p, int length){
     
@@ -399,7 +423,9 @@ void drawRaft(Point3D p, int length){
 };
 
 /*
- Similar as the drawFrog, and drawRaft, we can draw car 1
+ * Car1 Function
+ *
+ * Similar as the drawFrog, and drawRaft, we can draw car 1
  */
 void drawCar1(Point3D p){
     glPushMatrix();
@@ -421,7 +447,9 @@ void drawCar1(Point3D p){
 }
 
 /*
- Similar as the drawFrog, and drawRaft, we can draw car 2
+ * Car2 Function
+ *
+ * Similar as the Car1, we can draw car 2
  */
 void drawCar2(Point3D p){
     glPushMatrix();
@@ -442,7 +470,9 @@ void drawCar2(Point3D p){
 }
 
 /*
- Similar as the drawFrog, and drawRaft, we can draw car 3 (Fire truck)
+ * Car3 Function
+ *
+ * Similar as the Car1, and Car2; we can draw car 3
  */
 void drawCar3(Point3D p){
     //setMaterials(1);
@@ -465,9 +495,10 @@ void drawCar3(Point3D p){
 }
 
 /*
- *
  * Check Score
- * 
+ *
+ * Player will get the game score after game. Winning with less time speed
+ * will get higher score, and lose the game will have lower score.
  */
 void checkScore(){
     if(player.onStart){
@@ -487,6 +518,13 @@ void checkScore(){
     }
 }
 
+
+/*
+ * Time Display Function
+ *
+ * Display remain time of the game on the screen
+ *
+ */
 void timedisplay (int posx, int posy, int space_char, int remain_time)
 {
         int j=0,p,k;
@@ -511,6 +549,12 @@ void timedisplay (int posx, int posy, int space_char, int remain_time)
       
 }
 
+/*
+* Score Display Function
+*
+* Display how many scores you have at end of the game
+*
+*/
 void scoredisplay (int posx, int posy, int space_char, int scorevar)
 {
         int j=0,p,k;
@@ -534,14 +578,13 @@ void scoredisplay (int posx, int posy, int space_char, int scorevar)
             glRasterPos2f ((posx-(j*space_char)), posy);   
             glutBitmapCharacter(font_style1,text[i]);
         }
-
-
-        
-      
 }
 
 
-
+// References from the tut
+/**
+ * Set the orthographic projection
+ */
 void setOrthographicProjection() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -550,15 +593,15 @@ void setOrthographicProjection() {
     glLoadIdentity();
 }
 
-/** 2D renderings (like bitmap images) in here!
+/**
+ * 2D renderings (like bitmap images) in here!
  */
 void displayOrthographic() {
     setOrthographicProjection();
     //mouseHandler.drawHandlers();
     /**
-     * YOUR CODE HERE
      *
-     * draw the hudInterfaceImage instance!
+     * draw the player's life
      */
     if(player.lifes == 3){
         heart.draw(0,0);
@@ -578,23 +621,28 @@ void displayOrthographic() {
 
     }
 
+    // when player wins the game display the score
     if(player.win){
         checkScore();
         gamewin.draw(160,200);
         scoredisplay(370,10,10,player.score);
     }
 
+    // game's start time
     steady_clock::time_point clock_end = steady_clock::now();
 
+    // duration
     steady_clock::duration time_span = clock_end - clock_begin;
 
     double nseconds = double(time_span.count()) * steady_clock::period::num / steady_clock::period::den;
 
     if(player.live){
+        // continue count time
         timer = 60 - nseconds;
     }
     timedisplay (0, 10 , 15, timer);
     if(timer == 0){
+        // when time is zero, game over
         player.live = false;
         gameover.draw(160,200);
         scoredisplay(370,10,10,player.score);
@@ -602,6 +650,9 @@ void displayOrthographic() {
     
 }
 
+/**
+ * Set Perspective Projection Function
+ */
 void setPerspectiveProjection() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -614,7 +665,7 @@ void setPerspectiveProjection() {
 * Display Function
 * Set up the lights
 * Set up the camera
-* Call drawFrog, drawCar1, drawCar2, drawCar3, drawRaft, and drawFloor function
+* Call drawFrog, drawCar1, drawCar2, drawCar3, drawRaft, and drawGround function
 * Using double buffer
 */
 void display(){
@@ -673,6 +724,14 @@ void display(){
 
 }
 
+/**
+ * Move Funtions
+ *
+ * Cars and rafts  movement  funtions are written below, since each car and each raft
+ * have different sizes, we need count their movement position independently(different range)
+ * for cars and rafts move out the screen or move into the screen logically.
+ *
+ */
 void moveCar1(void){
     for (int i = 0; i < car1.size(); i++){
         if (-164 <= car1[i].position.mX && car1[i].position.mX <= 164){
@@ -760,7 +819,7 @@ void moveRaft4(){
 
 
 /* 
- * Check life of the frog 
+ * Check life of the frog Function
  *
  * Two conditions that the frog will lose life(s): crush the car and fall into water
  * 
@@ -883,6 +942,11 @@ void checkLife(){
     }
 }
 
+/**
+ *
+ * Frog's movement on rafts
+ *
+ */
 void frogOnRaftMovement(){
     if(player.num_tile_raft == 1){
         if(player.on_raft_num != 0){
@@ -918,11 +982,9 @@ void checkWin(){
 }
 
 /*
- *
  * Restart Function
  *  
  */
-
 void restart(){
     player = FrogPlayer();
     clock_begin = steady_clock::now();
@@ -934,7 +996,6 @@ void restart(){
  * 1. Press 'esc', 'q' or 'Q' to terminate the program
  * 2. God's Prespective of the game
  */
-
 void handleKeyboard(unsigned char key, int x, int y){
     double eye_x = eye[0];
     double eye_y = eye[1];
@@ -1000,7 +1061,6 @@ void handleKeyboard(unsigned char key, int x, int y){
  *
  * 1. Up and down arrow: move the frog up or down
  */
-
 void special(int key, int x, int y){
     switch(key){
         case GLUT_KEY_RIGHT: 
@@ -1071,7 +1131,7 @@ void special(int key, int x, int y){
 }
 
 /*
- Frog perspective
+ * Frog perspective
  */
 void frogCam(){
     eye[0] = player.position.mX;
@@ -1083,11 +1143,10 @@ void frogCam(){
 }
 
 
-/*
+/**
  * FPS function
  * Move the frog continously.
  */
-
 void FPS(int val){
     if(!godmode){
         frogCam();
@@ -1122,6 +1181,8 @@ void FPS(int val){
         player.onRoad = false;
         player.onStart = false;
     }
+    
+    // simple checks before next operations
     checkLife();
     checkWin();
     frogOnRaftMovement();

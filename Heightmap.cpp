@@ -7,7 +7,7 @@
 #include <math.h>
 
 /*
- Height Map Function
+ Height Map Function (Reference from A4)
  
  Choosing the size of the terrain and the algorithm of terrain that you want to draw
  Using a 2D array to store all points, and another 2D array to store color

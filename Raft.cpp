@@ -1,5 +1,9 @@
 #include "Raft.hpp"
 
+/**
+ * Raft Function
+ * Create raft with position, direction, length, speed, and target
+ */
 Raft::Raft(Point3D pos, Vec3D dir, int in_len, double in_speed, int target)
 {
     position = pos;
