@@ -8,15 +8,22 @@
 #  include <GL/freeglut.h>
 #endif
 
+#include<vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <vector>
 #include <math.h>
 #include "FrogPlayer.hpp"
 #include "objParser.hpp"
 #include "Car.hpp"
 #include "Raft.hpp"
+#include "PPM.h"
+#include "Heightmap.hpp"
+
+
+std::vector< std::vector<Point3D> > terrain;
+
+
 /* some global variables */
 int timer = 60; // time limit for each round
 
@@ -47,6 +54,20 @@ float car2_speed = 0.8;
 float car3_speed = 0.5;
 
 FrogPlayer player = FrogPlayer();
+
+/* Textures */
+/* Three texture */
+GLubyte* river;
+GLubyte* road;
+GLubyte* grass;
+
+/* arrays for image data */
+GLuint textures[3];
+
+int width1, height1, max1;
+int width2, height2, max2;
+int width3, height3, max3;
+
 
 //frog
 std::vector<Point3D> frog_verticess;
@@ -90,7 +111,7 @@ GLdouble up[] = { 0, 1, 0 };
     Two sets of lighting properties.
  */
 GLfloat light_pos[2][4] = {
-    {0,50,130,1}, //light0 position
+    {0,300,0,1}, //light0 position
     {150,150,70,1} //light1 position
 };
 GLfloat amb[2][4] = {
@@ -98,11 +119,11 @@ GLfloat amb[2][4] = {
     { 1, 1, 1, 1 } //light1
 };
 GLfloat diff[2][4] = {
-    { 0, 1, 0, 1 },//light0
+    { 1, 1, 1, 1 },//light0
     { 0, 0, 1, 1 } //light1
 };
 GLfloat spec[2][4] = {
-     { 1, 1, 1, 1 },//light0
+     { 0.2, 0.2, 0.2, 1 },//light0
     { 1, 1, 1, 1 } //light1
 };
 
@@ -194,12 +215,12 @@ float ground_vertices[24][3] = {{150,0,115},//v1
                                };
 
 /* faces for start tile */
-int face_start_tile[6][4] = {{1,2,3,4},
-                             {1,4,5,6},
+int face_start_tile[6][4] = {{4,3,2,1},
+                             {5,4,1,6},
                              {1,2,7,6},
-                             {4,3,8,5},
-                             {2,3,8,7},
-                             {5,6,7,8}};
+                             {5,8,3,4},
+                             {3,8,7,2},
+                             {6,7,8,5}};
 
 /* faces for start tile */
 int face_car_tile[6][4] = {{6,5,8,7}, //front
@@ -232,6 +253,49 @@ int face_end_tile[6][4] = {{17,18,19,20}, //front
                            {18,22,23,19}, //left
                            {20,19,23,24}, //buttom
                            {12,21,24,23}}; //back
+
+void texturing(){
+    glMatrixMode(GL_TEXTURE);
+    
+    glGenTextures(3, textures); //three textures
+    
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width1, height1, 0, GL_RGB, GL_UNSIGNED_BYTE, river);
+    
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width2, height2, 0, GL_RGB, GL_UNSIGNED_BYTE, road);
+    
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width3, height3, 0, GL_RGB, GL_UNSIGNED_BYTE, grass);
+    
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+    glClearColor(0, 0, 0, 0);
+    glColor3f(1, 1, 1);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45, 1, 1, 100);
+}
+
+
+
 
 /* set materials function */
 void setMaterials(unsigned int index) {
@@ -276,19 +340,149 @@ void createRafts(){
     raft4.push_back(Raft(Point3D(120,0,-90),Vec3D(1,0,0),6,0.4,4));
 
 }
+void draw_ground(){
+    glPushMatrix();
+    //end tile
+    //setMaterials(3);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    for(int i = 0; i < 300-1; i ++){
+        for(int j = 0; j < 20; j++){
+            glColor3f(0,0,1);
+            glBegin(GL_QUADS);
+            glNormal3f(0,1,0);
+                glTexCoord2f(1, 0);
+                glVertex3f(terrain[i][j].mX,terrain[i][j].mY,terrain[i][j].mZ);
+                glTexCoord2f(0, 0);
+                glVertex3f(terrain[i][j+1].mX,terrain[i][j+1].mY,terrain[i][j+1].mZ);
+                glTexCoord2f(0, 1);
+                glVertex3f(terrain[i+1][j+1].mX,terrain[i+1][j+1].mY,terrain[i+1][j+1].mZ);
+                glTexCoord2f(1, 1);
+                glVertex3f(terrain[i+1][j].mX,terrain[i+1][j].mY,terrain[i+1][j].mZ);
+            glEnd();
+        }
+    }
+    glPopMatrix();
+
+    //water tiles
+    //setMaterials(5);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    for(int i = 0; i < 300-1; i ++){
+        for(int j = 20; j < 110; j++){
+            glColor3f(0,0,1);
+            glBegin(GL_QUADS);
+            glNormal3f(0,1,0);
+                glTexCoord2f(1, 0);
+                glVertex3f(terrain[i][j].mX,terrain[i][j].mY,terrain[i][j].mZ);
+                glTexCoord2f(0, 0);
+                glVertex3f(terrain[i][j+1].mX,terrain[i][j+1].mY,terrain[i][j+1].mZ);
+                glTexCoord2f(0, 1);
+                glVertex3f(terrain[i+1][j+1].mX,terrain[i+1][j+1].mY,terrain[i+1][j+1].mZ);
+                glTexCoord2f(1, 1);
+                glVertex3f(terrain[i+1][j].mX,terrain[i+1][j].mY,terrain[i+1][j].mZ);
+            glEnd();
+        }
+    }
+    glPopMatrix();
+
+    //middle tiles
+    //setMaterials(3);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    for(int i = 0; i < 300-1; i ++){
+        for(int j = 110; j < 130; j++){
+            glColor3f(0,0,1);
+            glBegin(GL_QUADS);
+            glNormal3f(0,1,0);
+                glTexCoord2f(1, 0);
+                glVertex3f(terrain[i][j].mX,terrain[i][j].mY,terrain[i][j].mZ);
+                glTexCoord2f(0, 0);
+                glVertex3f(terrain[i][j+1].mX,terrain[i][j+1].mY,terrain[i][j+1].mZ);
+                glTexCoord2f(0, 1);
+                glVertex3f(terrain[i+1][j+1].mX,terrain[i+1][j+1].mY,terrain[i+1][j+1].mZ);
+                glTexCoord2f(1, 1);
+                glVertex3f(terrain[i+1][j].mX,terrain[i+1][j].mY,terrain[i+1][j].mZ);
+            glEnd();
+        }
+    }
+    glPopMatrix();
+
+    //car tiles
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+    for(int i = 0; i < 300-1; i ++){
+        for(int j = 130; j < 220; j++){
+            glColor3f(0,0,1);
+            glBegin(GL_QUADS);
+            glNormal3f(0,1,0);
+                glTexCoord2f(1, 0);
+                glVertex3f(terrain[i][j].mX,terrain[i][j].mY,terrain[i][j].mZ);
+                glTexCoord2f(0, 0);
+                glVertex3f(terrain[i][j+1].mX,terrain[i][j+1].mY,terrain[i][j+1].mZ);
+                glTexCoord2f(0, 1);
+                glVertex3f(terrain[i+1][j+1].mX,terrain[i+1][j+1].mY,terrain[i+1][j+1].mZ);
+                glTexCoord2f(1, 1);
+                glVertex3f(terrain[i+1][j].mX,terrain[i+1][j].mY,terrain[i+1][j].mZ);
+            glEnd();
+        }
+    }
+    glPopMatrix();
+
+    //start tile
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    for(int i = 0; i < 300-1; i ++){
+        for(int j = 220; j < 240-1; j++){
+            glColor3f(0,0,1);
+            glBegin(GL_QUADS);
+            glNormal3f(0,1,0);
+                glTexCoord2f(1, 0);
+                glVertex3f(terrain[i][j].mX,terrain[i][j].mY,terrain[i][j].mZ);
+                glTexCoord2f(0, 0);
+                glVertex3f(terrain[i][j+1].mX,terrain[i][j+1].mY,terrain[i][j+1].mZ);
+                glTexCoord2f(0, 1);
+                glVertex3f(terrain[i+1][j+1].mX,terrain[i+1][j+1].mY,terrain[i+1][j+1].mZ);
+                glTexCoord2f(1, 1);
+                glVertex3f(terrain[i+1][j].mX,terrain[i+1][j].mY,terrain[i+1][j].mZ);
+            glEnd();
+        }
+    }
+    glPopMatrix();
+
+
+    glPopMatrix();
+}
 
 /*
  draw the display ground, start tile, car tile, water tile, and end tile
  */
+/* 
 void draw_ground(){
-    //start tile
-    setMaterials(3);
     glPushMatrix();
+    //start tile
+    //setMaterials(3);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
     for(int i = 0; i < 6; i ++){
         glColor3f(1,0,1);
         glBegin(GL_QUADS);
         glNormal3fv(face_normals[i]);
         for(int j = 0; j < 4; j++){
+            if(i == 1){
+                if(j == 0){
+                glTexCoord2f(1, 0);
+            }
+            else if(j == 1){
+                glTexCoord2f(0, 0);
+            }
+            else if(j == 2){
+                glTexCoord2f(0, 1);
+            }
+            else if(j == 2){
+                glTexCoord2f(1, 1);
+            }
+            }
             glVertex3fv(ground_vertices[face_start_tile[i][j]-1]);
         }
         glEnd();
@@ -296,13 +490,28 @@ void draw_ground(){
     glPopMatrix();
 
     //car tiles
-    setMaterials(6);
+    //setMaterials(6);
     glPushMatrix();
+    //glBindTexture(GL_TEXTURE_2D, textures[1]);
     for(int i = 0; i < 6; i ++){
         glColor3f(0,0,0);
         glBegin(GL_QUADS);
         glNormal3fv(face_normals[i]);
         for(int j = 0; j < 4; j++){
+            if(i == 1){
+                if(j == 0){
+                glTexCoord2f(1, 0);
+            }
+            else if(j == 1){
+                glTexCoord2f(0, 0);
+            }
+            else if(j == 2){
+                glTexCoord2f(0, 1);
+            }
+            else if(j == 2){
+                glTexCoord2f(1, 1);
+            }
+            }
             glVertex3fv(ground_vertices[face_car_tile[i][j]-1]);
         }
         glEnd();
@@ -310,13 +519,28 @@ void draw_ground(){
     glPopMatrix();
 
     //middle tiles
-    setMaterials(3);
+    //setMaterials(3);
     glPushMatrix();
+    //glBindTexture(GL_TEXTURE_2D, textures[2]);
     for(int i = 0; i < 6; i ++){
         glColor3f(1,0,1);
         glBegin(GL_QUADS);
         glNormal3fv(face_normals[i]);
         for(int j = 0; j < 4; j++){
+            if(i == 1){
+                if(j == 0){
+                glTexCoord2f(1, 0);
+            }
+            else if(j == 1){
+                glTexCoord2f(0, 0);
+            }
+            else if(j == 2){
+                glTexCoord2f(0, 1);
+            }
+            else if(j == 2){
+                glTexCoord2f(1, 1);
+            }
+            }
             glVertex3fv(ground_vertices[face_middle_tile[i][j]-1]);
         }
         glEnd();
@@ -324,13 +548,28 @@ void draw_ground(){
     glPopMatrix();
 
     //water tiles
-    setMaterials(5);
+    //setMaterials(5);
     glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
     for(int i = 0; i < 6; i ++){
         glColor3f(0,0,1);
         glBegin(GL_QUADS);
         glNormal3fv(face_normals[i]);
         for(int j = 0; j < 4; j++){
+            if(i == 1){
+                if(j == 0){
+                glTexCoord2f(1, 0);
+            }
+            else if(j == 1){
+                glTexCoord2f(0, 0);
+            }
+            else if(j == 2){
+                glTexCoord2f(0, 1);
+            }
+            else if(j == 2){
+                glTexCoord2f(1, 1);
+            }
+            }
             glVertex3fv(ground_vertices[face_water_tile[i][j]-1]);
         }
         glEnd();
@@ -338,19 +577,38 @@ void draw_ground(){
     glPopMatrix();
 
     //end tile
-    setMaterials(3);
+    //setMaterials(3);
     glPushMatrix();
+    //glBindTexture(GL_TEXTURE_2D, textures[2]);
     for(int i = 0; i < 6; i ++){
         glColor3f(1,0,1);
         glBegin(GL_QUADS);
         glNormal3fv(face_normals[i]);
         for(int j = 0; j < 4; j++){
+            if(i == 1){
+                if(j == 0){
+                glTexCoord2f(1, 0);
+            }
+            else if(j == 1){
+                glTexCoord2f(0, 0);
+            }
+            else if(j == 2){
+                glTexCoord2f(0, 1);
+            }
+            else if(j == 2){
+                glTexCoord2f(1, 1);
+            }
+            }
             glVertex3fv(ground_vertices[face_end_tile[i][j]-1]);
         }
         glEnd();
     }
     glPopMatrix();
+
+    glPopMatrix();
 }
+
+*/
 
 /*
  since we load the obj file of frog by using our parser class,
@@ -361,7 +619,7 @@ void drawFrog(){
     glTranslatef(player.position.mX,player.position.mY,player.position.mZ);
     glRotatef(-90,0,1,0);
     glScalef(0.1,0.1,0.1);
-    setMaterials(4);
+    //setMaterials(4);
     // in each face of the frag
     for(int i = 0; i < frog_facess.size(); i++){
         glBegin(GL_POLYGON);
@@ -384,7 +642,8 @@ void drawFrog(){
  we are doing the same thing with drawFrog function, now we can draw the raft
  */
 void drawRaft(Point3D p, int length){
-    setMaterials(0);
+    //setMaterials(0);
+    
     glPushMatrix();
     glTranslatef(p.mX, p.mY, p.mZ);
     glRotatef(90,0,1,0);
@@ -407,7 +666,7 @@ void drawRaft(Point3D p, int length){
  Similar as the drawFrog, and drawRaft, we can draw car 1
  */
 void drawCar1(Point3D p){
-    setMaterials(7);
+    //setMaterials(7);
     glPushMatrix();
     glTranslatef(p.mX, p.mY, p.mZ);
     glScalef(6,6,6);
@@ -430,7 +689,7 @@ void drawCar1(Point3D p){
  Similar as the drawFrog, and drawRaft, we can draw car 2
  */
 void drawCar2(Point3D p){
-    setMaterials(2);
+    //setMaterials(2);
     glPushMatrix();
     glTranslatef(p.mX, p.mY, p.mZ);
     glScalef(6,6,6);
@@ -452,7 +711,7 @@ void drawCar2(Point3D p){
  Similar as the drawFrog, and drawRaft, we can draw car 3 (Fire truck)
  */
 void drawCar3(Point3D p){
-    setMaterials(1);
+    //setMaterials(1);
     
     glPushMatrix();
     glTranslatef(p.mX, p.mY, p.mZ);
@@ -993,12 +1252,21 @@ void callbackInit(){
 }
 
 int main(int argc, char** argv){
+    Heightmap(terrain, 300, 240);
     // obj files load to graphics
     loadOBJ("Frog.obj", frog_verticess, frog_normalss, frog_vts, frog_facess);// frog
     loadOBJ("cap.obj", car_verticess, car_normalss, car_vts, car_facess);// car1
     loadOBJ("woodTxt.obj", raft_verticess, raft_normalss, raft_vts, raft_facess);// logs
     loadOBJ("offroadcar.obj", car2_verticess, car2_normalss, car2_vts, car2_facess); // car 2
     loadOBJ("fireTruck.obj", car3_verticess, car3_normalss, car3_vts, car3_facess); // car 3
+
+    /* Load road, river and grass texture */
+    // load textures
+    river = LoadPPM("river.ppm",&width1, &height1, &max1);
+    road = LoadPPM("car_road.ppm",&width2, &height2, &max2);
+    grass = LoadPPM("walkway.ppm",&width3, &height3, &max3);
+
+    
 
     glutInit(&argc, argv);
     glutInitWindowSize(600,600);
@@ -1008,11 +1276,20 @@ int main(int argc, char** argv){
 
     callbackInit();
 
+    texturing();
+
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     //glEnable(GL_LIGHT1);
 
+    /* enable textures */
+    glEnable(GL_TEXTURE_2D);
+
     glEnable(GL_DEPTH_TEST);
+
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
+    //glEnable(GL_CULL_FACE);
 
     glShadeModel(GL_SMOOTH);
     glutMainLoop();

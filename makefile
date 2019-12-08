@@ -24,7 +24,7 @@ PROGRAM_NAME= neave_frogger
 run: $(PROGRAM_NAME)
 	./$(PROGRAM_NAME)$(EXEEXT)
 
-$(PROGRAM_NAME): NeaveFrogger.o mathLib3D.o objParser.o FrogPlayer.o Car.o Raft.o
+$(PROGRAM_NAME): NeaveFrogger.o mathLib3D.o objParser.o FrogPlayer.o Car.o Raft.o PPM.o Heightmap.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 square: square1.o 
