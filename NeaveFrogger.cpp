@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <string>
 #include <math.h>
 #include "FrogPlayer.hpp"
 #include "objParser.hpp"
@@ -19,14 +20,59 @@
 #include "Raft.hpp"
 #include "PPM.h"
 #include "Heightmap.hpp"
+#include <chrono>
+#include <unistd.h>
 
+using namespace std::chrono;
+
+/*
+
+#include <iostream>
+#include <chrono>
+#include <unistd.h>
+
+using namespace std;
+
+// main function to measure elapsed time of a C++ program 
+// using chrono library
+int main()
+{
+	auto start = chrono::steady_clock::now();
+
+	// do some stuff here
+	sleep(3);
+
+	auto end = chrono::steady_clock::now();
+
+	cout << "Elapsed time in nanoseconds : " 
+		<< chrono::duration_cast<chrono::nanoseconds>(end - start).count()
+		<< " ns" << endl;
+
+	cout << "Elapsed time in microseconds : " 
+		<< chrono::duration_cast<chrono::microseconds>(end - start).count()
+		<< " µs" << endl;
+
+	cout << "Elapsed time in milliseconds : " 
+		<< chrono::duration_cast<chrono::milliseconds>(end - start).count()
+		<< " ms" << endl;
+
+	cout << "Elapsed time in seconds : " 
+		<< chrono::duration_cast<chrono::seconds>(end - start).count()
+		<< " sec";
+
+	return 0;
+} */
 
 std::vector< std::vector<Point3D> > terrain;
 
+steady_clock::time_point clock_begin = steady_clock::now();
+
+int timer = 60;
+
+unsigned int viewportWidth  = 600;
+unsigned int viewportHeight = 600;
 
 /* some global variables */
-int timer = 60; // time limit for each round
-
 bool test = 0;
 
 bool godmode = false;
@@ -127,57 +173,6 @@ GLfloat spec[2][4] = {
     { 1, 1, 1, 1 } //light1
 };
 
-/*
-Materials setup
-1. ruby
-2. bronzer
-3. turquoise
-4. floor (white plastic)
-5. green (black plastic)
-6. water
-7. Black
-8. Green Emerald
- */
-GLfloat materialAmbient[8][4] = {
-    { 0.1745, 0.01175, 0.01175, 1.0 },
-    { 0.2125, 0.1275, 0.054, 1.0 },
-    { 0.1, 0.18725, 0.1745, 1.0 },
-    { 0.0,0.0,0.0},
-    {0.0,0.0,0.0},
-    {0.0, 0.0, 0.3},
-    {0.02, 0.02, 0.02, 1.0},
-    { 0.0215, 0.1745, 0.0215, 0.55 }
-};
-GLfloat materialDiffuse[8][4] = {
-    { 0.61424, 0.04136, 0.04136, 1.0 },
-    { 0.714, 0.4284, 0.18144, 1.0 },
-    { 0.396, 0.74151, 0.69102, 1.0 },
-    {0.55,0.55,0.55},
-    {0.1, 0.35, 0.1},
-    {0.0, 0.0, 0.6},
-    {0.01, 0.01, 0.01, 1.0},
-    {0.07568, 0.61424, 0.07568, 0.55}
-};
-GLfloat materialSpecular[8][4] = {
-    { 0.727811, 0.626959, 0.626959, 1.0 },
-    { 0.393548, 0.271906, 0.166721, 1.0 },
-    { 0.297254, 0.30829, 0.306678, 1.0 },
-    {0.70,0.70,0.70},
-    {0.45, 0.55, 0.45},
-    {0.6, 0.6, 0.8},
-    {0.4, 0.4, 0.4, 1.0},
-    {0.633, 0.727811, 0.633, 0.55 }
-};
-GLfloat materialShiny[8] = {
-    0.6,
-    0.2,
-    0.1,
-    32.0,
-    0.25,
-    100,
-    10.0,
-    76.8
-};
 
 struct Image {
     int mWidth;
@@ -241,6 +236,9 @@ Image firetruck;
 Image wood;
 Image yellowcar;
 Image pinkcar;
+Image heart;
+Image gameover;
+Image gamewin;
 
 
 
@@ -509,6 +507,147 @@ void drawCar3(Point3D p){
 }
 
 /*
+ *
+ * Check Score
+ * 
+ */
+void checkScore(){
+    if(player.onStart){
+        player.score = 0;
+    }
+    else if(player.onRoad){
+        player.score = (4 + player.num_tile_raft)*10;
+    }
+    else if(player.onMiddle){
+        player.score = 40;
+    }
+    else if(player.onRiver){
+        player.score = (player.num_tile_raft+4)*10;
+    }
+    else{
+        player.score = 90*timer;
+    }
+}
+
+void timedisplay (int posx, int posy, int space_char, int scorevar)
+{
+        int j=0,p,k;
+        GLvoid *font_style1 = GLUT_BITMAP_TIMES_ROMAN_24;
+        p = scorevar;
+        j = 0;
+        k = 0;
+        glRasterPos2f ((posx-(j*space_char))+570, posy);   
+        glutBitmapCharacter(font_style1,'s');
+        j++;
+        while(p > 9)
+        {
+            k = p % 10;
+            glRasterPos2f ((posx-(j*space_char))+570,posy);
+            glutBitmapCharacter(font_style1,48+k);
+            j++;
+            p /= 10;
+        }
+        glRasterPos2f ((posx-(j*space_char))+570, posy);   
+        glutBitmapCharacter(font_style1,48+p);
+        
+      
+}
+
+void scoredisplay (int posx, int posy, int space_char, int scorevar)
+{
+        int j=0,p,k;
+        GLvoid *font_style1 = GLUT_BITMAP_TIMES_ROMAN_24;
+        p = scorevar;
+        j = 0;
+        k = 0;
+        while(p > 9)
+        {
+            k = p % 10;
+            glRasterPos2f ((posx-(j*space_char)),posy);
+            glutBitmapCharacter(font_style1,48+k);
+            j++;
+            p /= 10;
+        }
+        glRasterPos2f ((posx-(j*space_char)), posy);   
+        glutBitmapCharacter(font_style1,48+p);
+        std::string text = " si erocs ruoy";
+        for(int i = 0; i < text.size(); i++){
+            j++;
+            glRasterPos2f ((posx-(j*space_char)), posy);   
+            glutBitmapCharacter(font_style1,text[i]);
+        }
+
+
+        
+      
+}
+
+
+
+void setOrthographicProjection() {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, viewportWidth, 0, viewportHeight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
+/** 2D renderings (like bitmap images) in here!
+ */
+void displayOrthographic() {
+    setOrthographicProjection();
+    //mouseHandler.drawHandlers();
+    /**
+     * YOUR CODE HERE
+     *
+     * draw the hudInterfaceImage instance!
+     */
+    if(player.lifes == 3){
+        heart.draw(0,0);
+        heart.draw(40,0);
+        heart.draw(80,0);
+    }
+    else if(player.lifes == 2){
+        heart.draw(0,0);
+        heart.draw(40,0);
+    }
+    else if(player.lifes == 1){
+        heart.draw(0,0);
+    }
+    else if(player.lifes == 0){
+        gameover.draw(160,200);
+        scoredisplay(370,10,10,player.score);
+
+    }
+
+    if(player.win){
+        checkScore();
+        gamewin.draw(160,200);
+        scoredisplay(370,10,10,player.score);
+    }
+
+    steady_clock::time_point clock_end = steady_clock::now();
+
+    steady_clock::duration time_span = clock_end - clock_begin;
+
+    double nseconds = double(time_span.count()) * steady_clock::period::num / steady_clock::period::den;
+
+    if(player.live){
+        timer = 60 - nseconds;
+    }
+    timedisplay (0, 10 , 15, timer);
+    
+}
+
+void setPerspectiveProjection() {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45, 1, 1, 1000);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
+/*
 * Display Function
 * Set up the lights
 * Set up the camera
@@ -525,6 +664,7 @@ void display(){
         glLightfv(GL_LIGHT0+i,GL_SPECULAR,spec[i]);
     }
 
+    setPerspectiveProjection();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     gluLookAt(eye[0], eye[1], eye[2], lookAt[0], lookAt[1], lookAt[2],up[0],up[1],up[2]);
@@ -563,6 +703,8 @@ void display(){
     for(int i = 0; i < raft4.size(); i++){
         drawRaft(raft4[i].position, raft4[i].length);
     }
+
+    displayOrthographic();
 
     glutSwapBuffers();
 
@@ -652,6 +794,7 @@ void moveRaft4(){
         
     } 
 }
+
 
 /* 
  * Check life of the frog 
@@ -772,7 +915,8 @@ void checkLife(){
     }
 
     if(player.lifes == 0){
-        std::cout << "Game over!\n";
+        player.live = false;
+        checkScore();
     }
 }
 
@@ -799,6 +943,29 @@ void frogOnRaftMovement(){
     }
 }
 
+/* 
+ * Check Win Function
+ * 
+ */
+void checkWin(){
+    if(player.position.mZ < -105){
+        player.live = false;
+        player.win = true;
+    }
+}
+
+/*
+ *
+ * Restart Function
+ *  
+ */
+
+void restart(){
+    player = FrogPlayer();
+    clock_begin = steady_clock::now();
+}
+
+
 /*
  * Some keyboard functions
  * 1. Press 'esc', 'q' or 'Q' to terminate the program
@@ -811,10 +978,16 @@ void handleKeyboard(unsigned char key, int x, int y){
     double eye_z = eye[2];
     double rotate_angle = 5.0 * pi /180 ;
     switch (key){
+    case 13:
+        std::cout << "hello" << std::endl;
+        if(!player.live){
+            restart();
+        }
+        break;
     case 27:
     case 'q':
     case 'Q':
-        std::cout << "Particle fountain system closed!\n";
+        std::cout << "NeaveFrogger Game Closed!\n";
         exit(0);
         break;
     // god's perspective
@@ -868,57 +1041,67 @@ void handleKeyboard(unsigned char key, int x, int y){
 void special(int key, int x, int y){
     switch(key){
         case GLUT_KEY_RIGHT: 
-            player.position.mX += 10;
+            if(player.live && player.position.mX + 15 <= 150){
+                player.position.mX += 10;
+            }
             break;
         case GLUT_KEY_LEFT:
-            player.position.mX -= 10;
+            if(player.live && player.position.mX - 15 >= -150){
+                player.position.mX -= 10;
+            }
             break;
         case GLUT_KEY_UP:
-            if(player.onMiddle){
-                player.position.mZ -= 25;
-                player.position.mY += 3;
-                player.num_tile_raft += 1;
-                std::cout << player.num_tile_raft << std::endl;
-            }
-            else if(player.onRiver){
-                player.position.mZ -= 20;
-                player.num_tile_raft += 1;
-                std::cout << player.num_tile_raft << std::endl;
-            }
-            else if(player.onStart){
-                player.position.mZ -= 25;
-            }
-            else if(player.onRoad && player.position.mZ > 20){
-                player.position.mZ -= 30;
-            }
-            else if(player.onRiver && player.position.mZ < -80){
-                player.position.mZ -= 20;
-                player.position.mY -=3;//dump off the raft
-            }
-            else{
-                player.position.mZ -= 25;
+            if(player.live){
+                if(player.onMiddle){
+                    player.position.mZ -= 25;
+                    player.position.mY += 3;
+                    player.num_tile_raft += 1;
+                }
+                else if(player.onRiver){
+                    player.position.mZ -= 20;
+                    player.num_tile_raft += 1;
+                }
+                else if(player.onStart){
+                    player.position.mZ -= 25;
+                }
+                else if(player.onRoad && player.position.mZ > 20){
+                    player.position.mZ -= 30;
+                }
+                else if(player.onRiver && player.position.mZ < -80){
+                    player.position.mZ -= 20;
+                    player.position.mY -=3;//dump off the raft
+                }
+                else{
+                    player.position.mZ -= 25;
+                }
             }
             break;
         case GLUT_KEY_DOWN: 
-            if(player.onRiver && player.num_tile_raft != 1){
-                player.position.mZ += 20;
-                player.num_tile_raft -= 1;
-                std::cout << player.num_tile_raft << std::endl;
-            }
-            else if(player.onRiver && player.num_tile_raft == 1){
-                player.position.mZ += 25;
-                player.position.mY -= 3;
-                player.num_tile_raft -= 1;
-                std::cout << player.num_tile_raft << std::endl;
-            }
-            else if(player.onMiddle){
-                player.position.mZ += 25;
-            }
-            else if(player.onRoad && player.position.mZ < 80){
-                player.position.mZ += 30;
-            }
-            else{
-                player.position.mZ += 25;
+            if(player.live){
+               if(player.onRiver && player.num_tile_raft != 1){
+                    player.position.mZ += 20;
+                    player.num_tile_raft -= 1;
+                    std::cout << player.num_tile_raft << std::endl;
+                }
+                else if(player.onRiver && player.num_tile_raft == 1){
+                    player.position.mZ += 25;
+                    player.position.mY -= 3;
+                    player.num_tile_raft -= 1;
+                    std::cout << player.num_tile_raft << std::endl;
+                }
+                else if(player.onMiddle){
+                    player.position.mZ += 25;
+                }
+                else if(player.onRoad && player.position.mZ < 80){
+                    player.position.mZ += 30;
+                }
+                else if(player.onStart){
+                    break;
+                }
+                else{
+                    player.position.mZ += 25;
+                }
+    
             }
             break;
     }
@@ -977,6 +1160,7 @@ void FPS(int val){
         player.onStart = false;
     }
     checkLife();
+    checkWin();
     frogOnRaftMovement();
     /* moving of the cars */
     moveCar1();
@@ -1003,20 +1187,6 @@ void handleReshape(int w, int h) {
     glViewport(0, 0, w, h);
 }
 
-void handleMouse(int button, int state, int x, int y) {
-    /**
-     * YOUR CODE HERE
-     *
-     * Check for GLUT_LEFT_BUTTON and GLUT_DOWN and then call
-     * mouseHandler.leftClickDown, remember viewportHeight - y.
-     */
-    if(button == GLUT_LEFT_BUTTON){
-        if(state == GLUT_DOWN){
-            std::cout << "Left click at " << x << ", " << 600 - y << std::endl;
-        }
-    }
-}
-
 /*
  * CallBackInit function
  */
@@ -1024,12 +1194,13 @@ void callbackInit(){
     //programInstr();
     createCars();
     createRafts();
-    glutMouseFunc(handleMouse);
     glutDisplayFunc(display);
     glutKeyboardFunc(handleKeyboard);
     glutSpecialFunc(special);
     glutReshapeFunc(handleReshape);
     glutTimerFunc(0, FPS, 0);
+    clock_begin = steady_clock::now();
+
 }
 
 int main(int argc, char** argv){
@@ -1051,10 +1222,13 @@ int main(int argc, char** argv){
     yellowcar.load("ppm/yellowcar.ppm");
     pinkcar.load("ppm/pinkcar.ppm");
     wood.load("ppm/wood.ppm");
+    heart.load("ppm/life.ppm");
+    gameover.load("ppm/gameover.ppm");
+    gamewin.load("ppm/win.ppm");
     
 
     glutInit(&argc, argv);
-    glutInitWindowSize(600,600);
+    glutInitWindowSize(viewportWidth,viewportHeight);
     glutInitWindowPosition(300,300);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
     glutCreateWindow("Neave Frogger");
@@ -1070,11 +1244,15 @@ int main(int argc, char** argv){
 
     glEnable(GL_DEPTH_TEST);
 
+
+    glClearColor(0.3, 0.3, 0.3, 1);
+
     glFrontFace(GL_CCW);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
 
     glShadeModel(GL_SMOOTH);
+
     glutMainLoop();
     
     return 0;

@@ -17,6 +17,9 @@ public:
     bool onRoad;
     int num_tile_raft;
     int on_raft_num;
+    bool live;
+    bool win;
+    int score;
 };
 
 #endif

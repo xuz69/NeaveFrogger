@@ -22,4 +22,10 @@ FrogPlayer::FrogPlayer(){
     this->num_tile_raft = 0;
 
     this->on_raft_num = 0;
+
+    this->live = true;
+
+    this->win = false;
+
+    this->score = 0;
 }
