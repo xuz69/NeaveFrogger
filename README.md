@@ -37,3 +37,11 @@ Reference:
     - fire truck: https://www.cgtrader.com/free-3d-models/vehicle/truck/low-poly-civil-protection-truck
     - frog: https://www.cgtrader.com/free-3d-models/animals/other/3ds-max-frog
     - wood: https://free3d.com/3d-model/simple-wood-billet-54853.html
+
+4. Timer implementation reference:
+    - http://www.cplusplus.com/reference/chrono/steady_clock/now/
+    - https://en.cppreference.com/w/cpp/chrono/steady_clock/now
+    - https://www.techiedelight.com/measure-elapsed-time-program-chrono-library/
+
+5. Text display reference:
+    - http://rohithsreeragam.blogspot.com/2012/12/how-to-display-scorevariable-value-in.html

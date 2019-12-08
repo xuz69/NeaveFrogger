@@ -25,43 +25,6 @@
 
 using namespace std::chrono;
 
-/*
-
-#include <iostream>
-#include <chrono>
-#include <unistd.h>
-
-using namespace std;
-
-// main function to measure elapsed time of a C++ program 
-// using chrono library
-int main()
-{
-	auto start = chrono::steady_clock::now();
-
-	// do some stuff here
-	sleep(3);
-
-	auto end = chrono::steady_clock::now();
-
-	cout << "Elapsed time in nanoseconds : " 
-		<< chrono::duration_cast<chrono::nanoseconds>(end - start).count()
-		<< " ns" << endl;
-
-	cout << "Elapsed time in microseconds : " 
-		<< chrono::duration_cast<chrono::microseconds>(end - start).count()
-		<< " µs" << endl;
-
-	cout << "Elapsed time in milliseconds : " 
-		<< chrono::duration_cast<chrono::milliseconds>(end - start).count()
-		<< " ms" << endl;
-
-	cout << "Elapsed time in seconds : " 
-		<< chrono::duration_cast<chrono::seconds>(end - start).count()
-		<< " sec";
-
-	return 0;
-} */
 
 std::vector< std::vector<Point3D> > terrain;
 
@@ -529,11 +492,11 @@ void checkScore(){
     }
 }
 
-void timedisplay (int posx, int posy, int space_char, int scorevar)
+void timedisplay (int posx, int posy, int space_char, int remain_time)
 {
         int j=0,p,k;
         GLvoid *font_style1 = GLUT_BITMAP_TIMES_ROMAN_24;
-        p = scorevar;
+        p = remain_time;
         j = 0;
         k = 0;
         glRasterPos2f ((posx-(j*space_char))+570, posy);   
@@ -636,6 +599,11 @@ void displayOrthographic() {
         timer = 60 - nseconds;
     }
     timedisplay (0, 10 , 15, timer);
+    if(timer == 0){
+        player.live = false;
+        gameover.draw(160,200);
+        scoredisplay(370,10,10,player.score);
+    }
     
 }
 
