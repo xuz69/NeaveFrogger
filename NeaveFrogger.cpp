@@ -25,29 +25,38 @@
 
 using namespace std::chrono;
 
+//create a player
+FrogPlayer player = FrogPlayer();
 
+/* Some global variables */
+
+//2d vector to store the 3D point of the terrain (the ground)
 std::vector< std::vector<Point3D> > terrain;
 
+//store the start time of each round
 steady_clock::time_point clock_begin = steady_clock::now();
 
+//timer of the game round
 int timer = 60;
 
+//window size (width and height)
 unsigned int viewportWidth  = 600;
 unsigned int viewportHeight = 600;
 
-/* some global variables */
-bool test = 0;
-
+//if true, god' perspective; else, frog's perspective
 bool godmode = false;
 
+//pi value
 double pi = 3.14159265;
 
+/* Car vectors to store different type of cars */
 std::vector<Car> car1;
 
 std::vector<Car> car2;
 
 std::vector<Car> car3;
 
+/* Raft vectors to store different length of rafts */
 std::vector<Raft> raft1;
 
 std::vector<Raft> raft2;
@@ -56,26 +65,12 @@ std::vector<Raft> raft3;
 
 std::vector<Raft> raft4;
 
+/* cars' speeds */
 float car1_speed = 1;
 
 float car2_speed = 0.8;
 
 float car3_speed = 0.5;
-
-FrogPlayer player = FrogPlayer();
-
-/* Textures */
-/* Three texture */
-GLubyte* river;
-GLubyte* road;
-GLubyte* grass;
-
-/* arrays for image data */
-GLuint textures[3];
-
-int width1, height1, max1;
-int width2, height2, max2;
-int width3, height3, max3;
 
 
 //frog
