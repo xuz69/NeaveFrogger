@@ -44,7 +44,7 @@ float car1_speed = 1;
 
 float car2_speed = 0.8;
 
-float car3_speed = 0.5;
+float car3_speed = 0.65;
 
 FrogPlayer player = FrogPlayer();
 
@@ -555,11 +555,11 @@ void moveCar2(void){
 
 void moveCar3(void){
     for (int i = 0; i < car3.size(); i++){
-        if (-164 <= car3[i].position.mX && car3[i].position.mX <= 164){
+        if (-190 <= car3[i].position.mX && car3[i].position.mX <= 180){
             car3[i].position.mX = car3[i].position.mX - car3_speed;
         }else
         {
-            car3[i].position.mX = 163;
+            car3[i].position.mX = 180;
         }
         
     }
@@ -567,11 +567,11 @@ void moveCar3(void){
 
 void moveRaft1(){
     for (int i = 0; i < raft1.size(); i++){
-        if (-164 <= raft1[i].position.mX && raft1[i].position.mX <= 164){
+        if (-164 <= raft1[i].position.mX && raft1[i].position.mX <= 175){
             raft1[i].position.mX = raft1[i].position.mX - raft1[i].speed;
         }else
         {
-            raft1[i].position.mX = 163;
+            raft1[i].position.mX = 175;
         }
         
     }
@@ -579,11 +579,11 @@ void moveRaft1(){
 
 void moveRaft2(){
     for (int i = 0; i < raft1.size(); i++){
-        if (-164 <= raft2[i].position.mX && raft2[i].position.mX <= 164){
+        if (-165 <= raft2[i].position.mX && raft2[i].position.mX <= 197){
             raft2[i].position.mX = raft2[i].position.mX - raft2[i].speed;
         }else
         {
-            raft2[i].position.mX = 163;
+            raft2[i].position.mX = 197;
         }
         
     }
@@ -591,11 +591,11 @@ void moveRaft2(){
 
 void moveRaft3(){
     for (int i = 0; i < raft1.size(); i++){
-        if (-164 <= raft3[i].position.mX && raft3[i].position.mX <= 164){
+        if (-164 <= raft3[i].position.mX && raft3[i].position.mX <= 180){
             raft3[i].position.mX = raft3[i].position.mX - raft3[i].speed;
         }else
         {
-            raft3[i].position.mX = 163;
+            raft3[i].position.mX = 180;
         }
         
     }
@@ -603,11 +603,11 @@ void moveRaft3(){
 
 void moveRaft4(){
     for (int i = 0; i < raft1.size(); i++){
-        if (-164 <= raft4[i].position.mX && raft4[i].position.mX <= 164){
+        if (-164 <= raft4[i].position.mX && raft4[i].position.mX <= 168){
             raft4[i].position.mX = raft4[i].position.mX - raft4[i].speed;
         }else
         {
-            raft4[i].position.mX = 163;
+            raft4[i].position.mX = 168;
         }
         
     } 
