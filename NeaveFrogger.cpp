@@ -22,6 +22,7 @@
 #include "Heightmap.hpp"
 #include <chrono>
 #include <unistd.h>
+#include <fstream>
 
 using namespace std::chrono;
 
@@ -45,6 +46,9 @@ unsigned int viewportHeight = 600;
 
 //if true, god' perspective; else, frog's perspective
 bool godmode = false;
+
+//only record the score into file once for each round
+bool recorded = false;
 
 //pi value
 double pi = 3.14159265;
@@ -115,8 +119,8 @@ GLdouble up[] = { 0, 1, 0 };
     Two sets of lighting properties.
  */
 GLfloat light_pos[2][4] = {
-    {0,300,0,1}, //light0 position
-    {150,150,70,1} //light1 position
+    {0,300,130,1}, //light0 position
+    {0,300,-130,1} //light1 position
 };
 GLfloat amb[2][4] = {
     { 1, 1, 1, 1 }, //light0
@@ -127,11 +131,12 @@ GLfloat diff[2][4] = {
     { 0, 0, 1, 1 } //light1
 };
 GLfloat spec[2][4] = {
-     { 0.2, 0.2, 0.2, 1 },//light0
+     { 0.5, 0.5, 0.5, 1 },//light0
     { 1, 1, 1, 1 } //light1
 };
 
-/*Image struct: reference from our tut*/
+
+/* Image struct: reference from our tut */
 struct Image {
     int mWidth;
     int mHeight;
@@ -139,12 +144,13 @@ struct Image {
     GLubyte * mImage;
 
     void load(char * filename) {
+
         mImage = LoadPPM(filename, &mWidth, &mHeight, &max);
 
     }
 
     void draw(unsigned int x, unsigned int y) {
-        glRasterPos2i(x + mWidth, y);
+        glRasterPos2i(x, y);
         /**
          * If you are on a retina display then you should replace the values
          * from -1, 1 to -2, 2 to ensure they appear at full size!
@@ -158,7 +164,8 @@ struct Image {
          * is very good. There is definitely a way to parse PPM bitmaps without
          * needing to flip the image like this.
          */
-        glPixelZoom(-2, 2);
+        glPixelZoom(-1, 1);
+
         glDrawPixels(mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, mImage);
     }
 
@@ -201,6 +208,7 @@ Image gamewin;
  * Create Cars Function
  *
  * Creating cars and giving their positions and direction
+ * 
  */
 void createCars(){
     // cars in the first line
@@ -254,10 +262,11 @@ void createRafts(){
  * drawing flat of the game, and add textures into the ground,
  * for the ground add rock texture; for the water surface add water
  * ripple texture; for road add road texture
- **/
+ *
+ */
 void draw_ground(){
     glPushMatrix();
-    //Finish tiles
+    //end tile
     glPushMatrix();
     rock.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -278,7 +287,7 @@ void draw_ground(){
     }
     glPopMatrix();
 
-    //Water tiles
+    //water tiles
     glPushMatrix();
     water.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -320,7 +329,7 @@ void draw_ground(){
     }
     glPopMatrix();
 
-    //Road tiles
+    //car tiles
     glPushMatrix();
     carroad.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -341,7 +350,7 @@ void draw_ground(){
     }
     glPopMatrix();
 
-    //Start tile
+    //start tile
     glPushMatrix();
     rock.texture();
     for(int i = 0; i < 300-1; i ++){
@@ -475,8 +484,6 @@ void drawCar2(Point3D p){
  * Similar as the Car1, and Car2; we can draw car 3
  */
 void drawCar3(Point3D p){
-    //setMaterials(1);
-    
     glPushMatrix();
     glTranslatef(p.mX, p.mY, p.mZ);
     glScalef(18,18,18);
@@ -500,12 +507,21 @@ void drawCar3(Point3D p){
  * Player will get the game score after game. Winning with less time speed
  * will get higher score, and lose the game will have lower score.
  */
+
 void checkScore(){
     if(player.onStart){
         player.score = 0;
     }
     else if(player.onRoad){
-        player.score = (4 + player.num_tile_raft)*10;
+        if(player.position.mZ > 65){
+            player.score = 10;
+        }
+        else if(player.position.mZ > 35){
+            player.score = 20;
+        }
+        else if(player.position.mZ > 5){
+            player.score = 30;
+        }
     }
     else if(player.onMiddle){
         player.score = 40;
@@ -518,6 +534,26 @@ void checkScore(){
     }
 }
 
+/*
+ *
+ * Write Score Record into a Score File
+ * 
+ */
+void writeRecord(){
+    std::ifstream file("scores.txt");
+    int count;
+    std::string line;
+    
+    while(getline(file,line)){
+        count++;
+    }
+
+    std::ofstream myfile;
+    myfile.open ("scores.txt",std::ios_base::app);
+    myfile << count << ", " << player.score << ", " << 60-timer << "\n";
+    myfile.close();
+
+}
 
 /*
  * Time Display Function
@@ -532,18 +568,18 @@ void timedisplay (int posx, int posy, int space_char, int remain_time)
         p = remain_time;
         j = 0;
         k = 0;
-        glRasterPos2f ((posx-(j*space_char))+570, posy);   
+        glRasterPos2f ((posx-(j*space_char))+(viewportWidth-30), posy);   
         glutBitmapCharacter(font_style1,'s');
         j++;
         while(p > 9)
         {
             k = p % 10;
-            glRasterPos2f ((posx-(j*space_char))+570,posy);
+            glRasterPos2f ((posx-(j*space_char))+(viewportWidth-30),posy);
             glutBitmapCharacter(font_style1,48+k);
             j++;
             p /= 10;
         }
-        glRasterPos2f ((posx-(j*space_char))+570, posy);   
+        glRasterPos2f ((posx-(j*space_char))+(viewportWidth-30), posy);   
         glutBitmapCharacter(font_style1,48+p);
         
       
@@ -578,6 +614,10 @@ void scoredisplay (int posx, int posy, int space_char, int scorevar)
             glRasterPos2f ((posx-(j*space_char)), posy);   
             glutBitmapCharacter(font_style1,text[i]);
         }
+
+
+        
+      
 }
 
 
@@ -585,6 +625,7 @@ void scoredisplay (int posx, int posy, int space_char, int scorevar)
 /**
  * Set the orthographic projection
  */
+
 void setOrthographicProjection() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -598,54 +639,60 @@ void setOrthographicProjection() {
  */
 void displayOrthographic() {
     setOrthographicProjection();
-    //mouseHandler.drawHandlers();
     /**
      *
      * draw the player's life
      */
     if(player.lifes == 3){
-        heart.draw(0,0);
+        heart.draw(40,0);
+        heart.draw(80,0);
+        heart.draw(120,0);
+    }
+    else if(player.lifes == 2){
         heart.draw(40,0);
         heart.draw(80,0);
     }
-    else if(player.lifes == 2){
-        heart.draw(0,0);
+    else if(player.lifes == 1){
         heart.draw(40,0);
     }
-    else if(player.lifes == 1){
-        heart.draw(0,0);
-    }
     else if(player.lifes == 0){
-        gameover.draw(160,200);
-        scoredisplay(370,10,10,player.score);
+        gameover.draw(viewportWidth*(3.0/4),200);
+        scoredisplay((370.0/600)*viewportWidth,10,10,player.score);
 
     }
-
     // when player wins the game display the score
     if(player.win){
         checkScore();
-        gamewin.draw(160,200);
-        scoredisplay(370,10,10,player.score);
+        gamewin.draw(viewportWidth*(2.0/3),200);
+        scoredisplay((370.0/600)*viewportWidth,10,10,player.score);
+        if(!recorded){
+            writeRecord();
+            recorded = true;
+        }
+
     }
 
     // game's start time
     steady_clock::time_point clock_end = steady_clock::now();
-
+    
     // duration
     steady_clock::duration time_span = clock_end - clock_begin;
 
     double nseconds = double(time_span.count()) * steady_clock::period::num / steady_clock::period::den;
 
     if(player.live){
-        // continue count time
         timer = 60 - nseconds;
     }
     timedisplay (0, 10 , 15, timer);
     if(timer == 0){
-        // when time is zero, game over
+        checkScore();
         player.live = false;
-        gameover.draw(160,200);
-        scoredisplay(370,10,10,player.score);
+        if(!recorded){
+            writeRecord();
+            recorded = true;
+        }
+        gameover.draw(viewportWidth*(2.0/3),200);
+        scoredisplay((370.0/600)*viewportWidth,10,10,player.score);
     }
     
 }
@@ -819,7 +866,7 @@ void moveRaft4(){
 
 
 /* 
- * Check life of the frog Function
+ * Check life of the frog 
  *
  * Two conditions that the frog will lose life(s): crush the car and fall into water
  * 
@@ -836,6 +883,9 @@ void checkLife(){
         if(frog_x < x + 17 && frog_x > x - 20 && frog_z> z - 18 && frog_z < z + 18){
             player.lifes -= 1;
             std::cout << "Crush!\n";
+            if(player.lifes == 0){
+                checkScore();
+            }
             player.position = Point3D(0,0,105);
         }
     }
@@ -847,6 +897,9 @@ void checkLife(){
         if(frog_x < x + 15 && frog_x > x - 20 && frog_z  > z - 18 && frog_z < z + 18){
             player.lifes -= 1;
             std::cout << "Crush!\n";
+            if(player.lifes == 0){
+                checkScore();
+            }
             player.position = Point3D(0,0,105);
         }
     }
@@ -857,6 +910,9 @@ void checkLife(){
         if(frog_x < x + 40 && frog_x > x - 25 && frog_z > z - 15 && frog_z < z + 15){
             player.lifes -= 1;
             std::cout << "Crush!\n";
+            if(player.lifes == 0){
+                checkScore();
+            }
             player.position = Point3D(0,0,105);
         }
     }
@@ -878,6 +934,9 @@ void checkLife(){
             player.num_tile_raft = 0;
             player.on_raft_num = 0;
             std::cout << "Fall in water!\n";
+            if(player.lifes == 0){
+                checkScore();
+            }
             player.position = Point3D(0,0,105);
         }
     }
@@ -896,6 +955,9 @@ void checkLife(){
             player.num_tile_raft = 0;
             player.on_raft_num = 0;
             std::cout << "Fall in water!\n";
+            if(player.lifes == 0){
+                checkScore();
+            }
             player.position = Point3D(0,0,105);
         }
     }
@@ -914,6 +976,9 @@ void checkLife(){
             player.num_tile_raft = 0;
             player.on_raft_num = 0;
             std::cout << "Fall in water!\n";
+            if(player.lifes == 0){
+                checkScore();
+            }
             player.position = Point3D(0,0,105);
         }
     }
@@ -932,13 +997,19 @@ void checkLife(){
             player.num_tile_raft = 0;
             player.on_raft_num = 0;
             std::cout << "Fall in water!\n";
+            if(player.lifes == 0){
+                checkScore();
+            }
             player.position = Point3D(0,0,105);
         }
     }
 
     if(player.lifes == 0){
         player.live = false;
-        checkScore();
+        if(!recorded){
+            writeRecord();
+            recorded = true;
+        }
     }
 }
 
@@ -982,12 +1053,24 @@ void checkWin(){
 }
 
 /*
+ *
  * Restart Function
  *  
  */
+
 void restart(){
     player = FrogPlayer();
     clock_begin = steady_clock::now();
+    /* frog's perspective */
+    eye[0] = player.position.mX;
+    eye[1] = player.position.mY+7;
+    eye[2] = player.position.mZ;
+    lookAt[0] = player.position.mX;
+    lookAt[1] = player.position.mY;
+    lookAt[2] = player.position.mZ-30;
+    //set recorded to false
+    recorded = false;
+
 }
 
 
@@ -996,6 +1079,7 @@ void restart(){
  * 1. Press 'esc', 'q' or 'Q' to terminate the program
  * 2. God's Prespective of the game
  */
+
 void handleKeyboard(unsigned char key, int x, int y){
     double eye_x = eye[0];
     double eye_y = eye[1];
@@ -1003,7 +1087,6 @@ void handleKeyboard(unsigned char key, int x, int y){
     double rotate_angle = 5.0 * pi /180 ;
     switch (key){
     case 13:
-        std::cout << "hello" << std::endl;
         if(!player.live){
             restart();
         }
@@ -1016,6 +1099,7 @@ void handleKeyboard(unsigned char key, int x, int y){
         break;
     // god's perspective
     case 'g':
+    case 'G':
         godmode = !godmode;
         if(godmode){
             // the the camera position from frog perspective to god's mode
@@ -1061,6 +1145,7 @@ void handleKeyboard(unsigned char key, int x, int y){
  *
  * 1. Up and down arrow: move the frog up or down
  */
+
 void special(int key, int x, int y){
     switch(key){
         case GLUT_KEY_RIGHT: 
@@ -1104,13 +1189,11 @@ void special(int key, int x, int y){
                if(player.onRiver && player.num_tile_raft != 1){
                     player.position.mZ += 20;
                     player.num_tile_raft -= 1;
-                    std::cout << player.num_tile_raft << std::endl;
                 }
                 else if(player.onRiver && player.num_tile_raft == 1){
                     player.position.mZ += 25;
                     player.position.mY -= 3;
                     player.num_tile_raft -= 1;
-                    std::cout << player.num_tile_raft << std::endl;
                 }
                 else if(player.onMiddle){
                     player.position.mZ += 25;
@@ -1131,7 +1214,7 @@ void special(int key, int x, int y){
 }
 
 /*
- * Frog perspective
+ Frog perspective
  */
 void frogCam(){
     eye[0] = player.position.mX;
@@ -1143,10 +1226,11 @@ void frogCam(){
 }
 
 
-/**
+/*
  * FPS function
  * Move the frog continously.
  */
+
 void FPS(int val){
     if(!godmode){
         frogCam();
@@ -1181,8 +1265,6 @@ void FPS(int val){
         player.onRoad = false;
         player.onStart = false;
     }
-    
-    // simple checks before next operations
     checkLife();
     checkWin();
     frogOnRaftMovement();
@@ -1204,6 +1286,8 @@ void FPS(int val){
 
 /* Reshape function */
 void handleReshape(int w, int h) {
+    viewportHeight = h;
+    viewportWidth = w;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(45, 1, 1, 1000);
@@ -1226,6 +1310,32 @@ void callbackInit(){
     clock_begin = steady_clock::now();
 
 }
+
+/*
+ * Initialization Function
+ */
+void init(void){
+
+    // operation guide of game in terminal.
+    std::cout << "Welcome to The Frogger Game!\n";
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "KEYBOARD commands:\n";
+    std::cout << "1. Pressing 'q', 'Q' or 'ESC' to exit the system.\n";
+    std::cout << "2. Press 'a' to rotate the camera position (God Mode)  about y-axis in CCW \n";
+    std::cout << "3. Press 'd' to rotate the camera position (God Mode) about y-axis in CW\n";
+    std::cout << "4. Press 'w' to rotate the camera position (God Mode) about x-axis in CW\n";
+    std::cout << "5. Press 's' to rotate the camera position  (God Mode) about x-axis in CCW\n";
+    std::cout << "6. Press right arrow button to change the frog position along x-axis (positive)\n";
+    std::cout << "7. Press left arrow button to change the frog position along x-axis (negative)\n";
+    std::cout << "8. Press down arrow button to change the frog position along z-axis (negative)\n";
+    std::cout << "9. Press up arrow button to change the frog position along z-axis (positive)\n";
+    std::cout << "10. Press 'g' or 'G' to change the perspective mode between god and frog \n";
+    std::cout << "11. Press ENTER key to restart game if and only if the round of game is end \n";
+    std::cout << "----------------------------------------------------------------\n";
+    std::cout << "Have Fun!\n";
+    std::cout << std::endl;
+}
+
 
 int main(int argc, char** argv){
     Heightmap(terrain, 300, 240);
@@ -1257,11 +1367,12 @@ int main(int argc, char** argv){
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
     glutCreateWindow("Neave Frogger");
 
+    init();
     callbackInit();
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    //glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT1);
 
     /* enable textures */
     glEnable(GL_TEXTURE_2D);
