@@ -1,9 +1,9 @@
-CS3GC3 Final Project
+3D Version of Neave Frogger
 
-Group Members:
-1. Amy Xu [400079409]
+Team Members:
+1. Amy Xu
 
-2. Baikai Wang [400084727]
+2. Baikai Wang
 
 
 How To Run:
